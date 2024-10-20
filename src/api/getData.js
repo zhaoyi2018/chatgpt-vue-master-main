@@ -191,18 +191,53 @@ export const list_standard_clause = params => {
   })
 }
 
-export const compare_clause = params => {
-  return axios({
-    method: 'post',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    url: `http://121.43.126.21:8001/clause/compare_clause`,
-    data: params,
-  }).then(res => {
-    return res
-  })
+export const compare_clause = async (params, handleChunk) => {
+  let response = null;
+  let code = 400;
+  do {
+    // 睡眠1s
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    try {
+       // 获取比对内容
+      response = await fetch(`http://121.43.126.21:8001/clause/compare_clause`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8',
+        },
+        body: JSON.stringify(params)
+      });
+      code = response.status;
+    } catch (error) {
+      console.log("error", error)
+    }
+   
+  } while (code != 200);
+
+
+  const readableStream = response.body;
+  if (readableStream) {
+    const reader = readableStream.getReader();
+    let first = true;
+    
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) {
+        break;
+      }
+      const chunkValue = new TextDecoder().decode(value);
+      const lines = chunkValue.split('\n').filter(line => line.startsWith('data: '));
+      lines.forEach(line => {
+        const content = line.slice(6).trim(); // Remove 'data: ' prefix and trim whitespace
+        handleChunk(first, content, false);
+        first = false;
+      });
+    }
+    handleChunk(first, "", true);
+    reader.releaseLock();
+    
+  }
 }
+
 export const list_compare_history = params => {
   return axios({
     method: 'get',
@@ -217,7 +252,7 @@ export const list_compare_history = params => {
 }
 
 
-export const upload_new_clause = async (file, handleChunk) => {
+export const upload_new_clause = (file, handleChunk) => {
     const formData = new FormData();
     formData.append('file', file.file);
     formData.append('token', file.token);
@@ -225,41 +260,12 @@ export const upload_new_clause = async (file, handleChunk) => {
 
     // }
     // 发送文件上传请求并逐条处理返回的数据流
-    const response = await axios.post('http://121.43.126.21:8001/clause/upload_new_clause', formData, {
+    return axios.post('http://121.43.126.21:8001/clause/upload_new_clause', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
-      },
-      responseType: 'stream' // 使用流式响应
+      }
     });
   
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-  
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-  
-      buffer += decoder.decode(value, { stream: true });
-  
-      let boundaryIndex;
-      while ((boundaryIndex = buffer.indexOf('"content":')) !== -1) {
-        const start = boundaryIndex + 10;
-        const end = buffer.indexOf('}', start);
-        if (end === -1) break;
-  
-        const chunk = buffer.substring(start, end).trim();
-        buffer = buffer.substring(end + 1);
-  
-        const contentMatch = chunk.match(/"(.*?)"/);
-        if (contentMatch) {
-          const content = contentMatch[1];
-          handleChunk(content);
-        }
-      }
-    }
-  
-    reader.releaseLock();
   };
 
 export const chatkbStreamgpt = async (params, handleChunk, handleReferences) => {

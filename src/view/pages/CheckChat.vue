@@ -39,10 +39,19 @@
                                 <div class="el-upload__text">点击上传</div>
                             </el-upload>
                         </div>
-                        <el-main v-if="hasUploadDone">
+                        <!-- 未上传 -->
+                        <el-main v-if="!hasUploadDone" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                            <div>请先选择标准条款，上传待审核条款</div>
+                        </el-main>
+                        <!-- 上传完成且未比对 -->
+                        <el-main v-if="hasUploadDone && !hasCompareDone" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                            <div>正在比对，请稍等</div>
+                        </el-main>
+                        <!-- 上传完成且比对完成 -->
+                        <el-main v-if="hasUploadDone && hasCompareDone">
                             <el-table :data="clauseTableData" style="width: 100%">
                                 <!-- 条款编号列 -->
-                                <el-table-column prop="index" label="序号" width="50">
+                                <el-table-column type="index" label="序号" width="50">
                                 </el-table-column>
                                 <el-table-column prop="institution" label="制度要素" width="100">
                                 </el-table-column>
@@ -54,13 +63,7 @@
                                 <!-- 原文列 -->
                                 <el-table-column prop="original_text" label="法规原文">
                                 </el-table-column>
-                                <el-table-column prop="content" label="企业制度">
-                                    <template slot-scope="scope">
-                                        <el-tooltip class="item" effect="dark" :content="scope.row.content"
-                                            popper-class="custom-tooltip" placement="top">
-                                            <div class="ellipsis">{{ scope.row.content }}</div>
-                                        </el-tooltip>
-                                    </template>
+                                <el-table-column prop="related_chunks.content" label="企业制度">
                                 </el-table-column>
                                 <!-- 审核结果列 -->
                                 <el-table-column prop="review_result" label="检查结果" width="50">
@@ -101,21 +104,28 @@ export default {
     },
     created() {
         console.log("created", this.$root.configs)
-        let compareparams = {
-            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
-            stand_id: "ec916c06-8706-11ef-aa4f-00163e1e6539",
-            new_id: "ee29e442-8a2d-11ef-9596-00163e1e6539"
-        }
-        console.log("compareparams", compareparams)
-        compare_clause(compareparams).then((res) => {
-            console.log("res", res)
-        })
+        // let compareparams = {
+        //     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
+        //     stand_id: "ec916c06-8706-11ef-aa4f-00163e1e6539",
+        //     new_id: "ee29e442-8a2d-11ef-9596-00163e1e6539"
+        // }
+        // console.log("compareparams", compareparams)
+        // compare_clause(compareparams, this.handleChunk1).then((res) => {
+        //     console.log("res", res)
+        // })
         let params = {
             token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g"
         }
         console.log("params", params)
+        // 标准条款列表
         list_standard_clause(params).then((res) => {
             console.log("list_conversion", res)
+            if (res.data.code == 200) {
+                this.options = res.data.data
+                this.steps = 1
+            } else {
+                this.$message.error(res.data.message)
+            }
         }).catch((err) => {
 
         })
@@ -175,8 +185,8 @@ export default {
                     {
                         file_id: "259dfc41-896c-11ef-91da-2cf05d3470d1",
                         file_name: "03 测试制度1-安全培训教育制度.docx",
+                        content: "培训计划和培训资金 安全部负责开展安全培训需求调研工作，各职能部门根据本部门的需要，在年初提交培训需求给安全部，由安全部统一汇总。 安全部汇总安全培训需求，确定安全培训所需费用，根据培训需求和国家相关规定，制定公司年度安全培训计划，提交总经理批准。 总经理批准后，安全部按照年度培训计划组织开展安全培训。 任何部门不得挪用安全培训资金。",
                     },
-                    content: "培训计划和培训资金 安全部负责开展安全培训需求调研工作，各职能部门根据本部门的需要，在年初提交培训需求给安全部，由安全部统一汇总。 安全部汇总安全培训需求，确定安全培训所需费用，根据培训需求和国家相关规定，制定公司年度安全培训计划，提交总经理批准。 总经理批准后，安全部按照年度培训计划组织开展安全培训。 任何部门不得挪用安全培训资金。",
                     review_result: '符合',
                     advice: '无',
                 },
@@ -189,8 +199,8 @@ export default {
                     related_chunks: {
                         file_id: "259dfc41-896c-11ef-91da-2cf05d3470d1",
                         file_name: "03 测试制度1-安全培训教育制度.docx",
+                        content: "培训计划和培训资金 安全部负责开展安全培训需求调研工作，各职能部门根据本部门的需要，在年初提交培训需求给安全部，由安全部统一汇总。 安全部汇总安全培训需求，确定安全培训所需费用，根据培训需求和国家相关规定，制定公司年度安全培训计划，提交总经理批准。 总经理批准后，安全部按照年度培训计划组织开展安全培训。 任何部门不得挪用安全培训资金。",
                     },
-                    content: "培训计划和培训资金 安全部负责开展安全培训需求调研工作，各职能部门根据本部门的需要，在年初提交培训需求给安全部，由安全部统一汇总。 安全部汇总安全培训需求，确定安全培训所需费用，根据培训需求和国家相关规定，制定公司年度安全培训计划，提交总经理批准。 总经理批准后，安全部按照年度培训计划组织开展安全培训。 任何部门不得挪用安全培训资金。",
                     original_text: '生产经营单位应当将安全培训工作纳入本单位年度工作计划。保证本单位安全培训工作所需资金。',
                     review_result: '符合',
                     advice: '无',
@@ -202,9 +212,11 @@ export default {
                     clause_name: '安全生产教育培训制度',
                     clause_number: '《生产经营单位安全培训规定》（原国家安全生产监督管理总局令第80号） 第二十一条',
                     original_text: '生产经营单位应当将安全培训工作纳入本单位年度工作计划。保证本单位安全培训工作所需资金。',
-                    related_chunks:
-                        { file_id: "259dfc41-896c-11ef-91da-2cf05d3470d1", file_name: "03 测试制度1-安全培训教育制度.docx" },
-                    content: "培训计划和培训资金 安全部负责开展安全培训需求调研工作，各职能部门根据本部门的需要，在年初提交培训需求给安全部，由安全部统一汇总。 安全部汇总安全培训需求，确定安全培训所需费用，根据培训需求和国家相关规定，制定公司年度安全培训计划，提交总经理批准。总经理批准后，安全部按照年度培训计划组织开展安全培训。 任何部门不得挪用安全培训资金。",
+                    related_chunks: { 
+                        file_id: "259dfc41-896c-11ef-91da-2cf05d3470d1",
+                        file_name: "03 测试制度1-安全培训教育制度.docx",
+                        content: "培训计划和培训资金 安全部负责开展安全培训需求调研工作，各职能部门根据本部门的需要，在年初提交培训需求给安全部，由安全部统一汇总。 安全部汇总安全培训需求，确定安全培训所需费用，根据培训需求和国家相关规定，制定公司年度安全培训计划，提交总经理批准。总经理批准后，安全部按照年度培训计划组织开展安全培训。 任何部门不得挪用安全培训资金。",
+                    },
                     review_result: '符合',
                     advice: '无',
                 }],
@@ -303,7 +315,12 @@ export default {
             //请求头
             headers: { "Content-Type": "multipart/form-data" },
             isHovered: [],
-            hasUploadDone: true
+            // 是否上传完成
+            hasUploadDone: false,
+            // 是否比对完成
+            hasCompareDone: false, 
+            // 步骤条【0：选择标准条款，1：上传待审核条款，2：比对中，3：比对完成】
+            steps: 0,
         };
     },
     watch: {
@@ -448,7 +465,6 @@ export default {
 
         //上传文件的事件
         uploadFile(item) {
-            // this.$showMessage('文件上传中........')
             //上传文件的需要formdata类型;所以要转
             var FormDatas = new FormData()
             FormDatas.append('file', item.file);
@@ -460,34 +476,35 @@ export default {
             }
             this.fileList.push(item.file);
             upload_new_clause(params).then(res => {
-                console.log("res", res.data.content)
-                this.hasUploadDone = true
-
-                // this.fileType = "file"
+                console.log("res-上传", res)
+                if (res.data.code == 200) {
+                    this.hasUploadDone = true
+                    // 比对
+                    const compareparams = {
+                        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
+                        stand_id: "ec916c06-8706-11ef-aa4f-00163e1e6539",
+                        new_id: res.data.data.id
+                    }
+                    compare_clause(compareparams, this.handleChunk1)
+                } else {
+                    this.$message.error('上传失败!');
+                }
             })
         },
-        handleChunk1(first, content) {
+        handleChunk1(first, content, end) {
+            console.log("content", first, content)
+            // 初始化
             if (first) {
-                this.chatMessages.push({ content: '', role: 'assistant', reference: [] });
+                this.clauseTableData = []
+                this.hasCompareDone = true
             }
-            console.log("content", content)
-
-            const lastMessageIndex = this.chatMessages.length - 1;
-            this.chatMessages[lastMessageIndex].content += content;
-            this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
-            this.newhistory = {
-                dialogue_id: this.chat_id, history: this.chatMessages
+            // 结束
+            if (end) {
+                this.$message.success('比对完成!');
+                return
             }
-            const existingIndex = this.historyArrlist.findIndex(item => item.dialogue_id === this.chat_id);
-
-            if (existingIndex === -1) {
-                this.historyArrlist.unshift(this.newhistory);
-            } else {
-                console.log("Duplicate dialogue_id found, not adding.");
-            }
-            this.newMessage = '';
-            this.chatStarted = true;
-            this.fileList = []
+            // 比对内容插入
+            this.clauseTableData.push(JSON.parse(content))
         },
         //上传成功后的回调
         handleSuccess() {
