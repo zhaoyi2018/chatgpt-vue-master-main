@@ -34,9 +34,9 @@
                                 </el-option>
                             </el-select>
                             <el-upload class="upload-demo" action :http-request="uploadFile" ref="upload"
-                                :show-file-list="false">
+                                :show-file-list="false" style="margin-left: 10px;">
                                 <i class="el-icon-upload"></i>
-                                <div class="el-upload__text">点击上传</div>
+                                <div class="el-upload__text">上传新条款</div>
                             </el-upload>
                         </div>
                         <!-- 未上传 -->
@@ -44,15 +44,15 @@
                             <el-steps style="width: 800px" :active="activeStep" finish-status="success">
                                 <el-step title="选择标准条款" />
                                 <el-step title="上传待审核条款" />
-                                <el-step title="比对中" />
+                                <el-step title="新文档分析中" />
                                 <el-step title="比对完成" />
                             </el-steps>
                         </el-main>
                         <!-- 上传完成且比对完成 -->
-                        <el-main v-else>
+                        <el-main v-else style="padding: 20px 0px">
                             <el-table :data="clauseTableData" style="width: 100%">
                                 <!-- 条款编号列 -->
-                                <el-table-column type="index" label="序号" width="50">
+                                <el-table-column type="index" label="序号" width="50" align="center">
                                 </el-table-column>
                                 <el-table-column prop="institution" label="制度要素" width="100">
                                 </el-table-column>
@@ -62,16 +62,16 @@
                                 </el-table-column>
 
                                 <!-- 原文列 -->
-                                <el-table-column prop="original_text" label="法规原文">
+                                <el-table-column prop="original_text" label="法规原文" width="340">
                                 </el-table-column>
-                                <el-table-column prop="related_chunks.content" label="企业制度">
+                                <el-table-column prop="related_chunks.content" label="企业制度" width="442">
                                 </el-table-column>
                                 <!-- 审核结果列 -->
                                 <el-table-column prop="review_result" label="检查结果" width="50">
                                 </el-table-column>
 
                                 <!-- 审核建议列 -->
-                                <el-table-column prop="advice" label="修改建议" width="50">
+                                <el-table-column prop="advice" label="修改建议" align="center">
                                 </el-table-column>
                             </el-table>
                         </el-main>
@@ -320,7 +320,7 @@ export default {
             hasUploadDone: false,
             // 是否比对完成
             hasCompareDone: false, 
-            // 步骤条【0：选择标准条款，1：上传待审核条款，2：比对中，3：比对完成】
+            // 步骤条【0：选择标准条款，1：上传待审核条款，2：新文档理解中，3：比对完成】
             activeStep: 1,
         };
     },
@@ -500,7 +500,7 @@ export default {
         },
         async handleChunk1(first, content, end) {
             console.log("content", first, content)
-            
+
             // 初始化
             if (first) {
                 this.activeStep = 4
@@ -767,7 +767,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped lang="scss">
 .el-menu .el-menu-item {
     width: 100%;
 }
@@ -890,4 +890,24 @@ export default {
     word-wrap: break-word;
     /* 自动换行 */
 }
+
+
+
+  /* 修改完成状态的标题字体颜色 */
+  :deep(.el-step__title.is-success)  {
+    color: #1385f6 !important;/* 使用 Element UI 的成功绿色或其他您喜欢的颜色 */
+  }
+
+  /* 修改图标颜色 */
+  :deep(.el-step__head.is-success) {
+    .el-step__icon.is-text {
+      border-color: #1385f6 !important;
+      color: #1385f6 !important;
+    }
+    .el-step__line {
+      background-color: #1385f6 !important;
+      color: #1385f6 !important;
+      border-color: #1385f6 !important;
+    }
+  }
 </style>

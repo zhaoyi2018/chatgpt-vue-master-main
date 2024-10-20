@@ -567,13 +567,19 @@ export default {
 
 
         },
-        handleChunk(first, content) {
+        handleChunk(first, content, reference, end) {
             if (first) {
-                this.chatMessages.push({ content: '', role: 'assistant', reference: [] });
+                this.chatMessages.push({ content: '', role: 'assistant', reference: JSON.parse(reference).reference });
             }
             const lastMessageIndex = this.chatMessages.length - 1;
-            this.chatMessages[lastMessageIndex].content += content;
-            this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
+            if (!end) {
+                this.chatMessages[lastMessageIndex].content += content;
+                this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
+            } else {
+                this.chatMessages[lastMessageIndex].content = JSON.parse(content).response;
+                this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
+            }
+            
             this.newhistory = {
                 dialogue_id: this.chat_id, history: this.chatMessages
             }
@@ -586,6 +592,7 @@ export default {
             }
             this.newMessage = '';
             this.chatStarted = true;
+
         },
         handleReferences(reference) {
             console.log("reference", JSON.parse(reference).reference)

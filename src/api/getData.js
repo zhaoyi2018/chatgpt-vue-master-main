@@ -292,15 +292,15 @@ export const chatkbStreamgpt = async (params, handleChunk, handleReferences) => 
       const chunkValue = new TextDecoder().decode(value);
       const lines = chunkValue.split('\n').filter(line => line.startsWith('data: '));
       lines.forEach(line => {
-        const content = line.slice(6).trim(); // Remove 'data: ' prefix and trim whitespace
-        if (isReferences) {
-          references = content;
+        let content = line.slice(6); // Remove 'data: ' prefix and trim whitespace
+        console.log("my-content", content)
+        if (content.startsWith('{"reference"')) {
+          handleChunk(first, '', content, false);
         } else if (content.startsWith('{"response"')) {
-          
-          isReferences = true;
-          references = content;
+          handleChunk(first, content, null, true);
         } else {
-          handleChunk(first, content);
+          content = content.length >= 2 ? content.substring(0, content.length - 1) : content
+          handleChunk(first, content, null, false);
         }
         first = false;
       });
@@ -308,9 +308,9 @@ export const chatkbStreamgpt = async (params, handleChunk, handleReferences) => 
     
     reader.releaseLock();
     
-    if (isReferences && references) {
-      handleReferences(references);
-    }
+    // if (isReferences && references) {
+    //   handleReferences(references);
+    // }
   }
 };
 
