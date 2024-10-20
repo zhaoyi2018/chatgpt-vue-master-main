@@ -40,15 +40,16 @@
                             </el-upload>
                         </div>
                         <!-- 未上传 -->
-                        <el-main v-if="!hasUploadDone" style="display: flex; justify-content: center; align-items: center; height: 100%;">
-                            <div>请先选择标准条款，上传待审核条款</div>
-                        </el-main>
-                        <!-- 上传完成且未比对 -->
-                        <el-main v-if="hasUploadDone && !hasCompareDone" style="display: flex; justify-content: center; align-items: center; height: 100%;">
-                            <div>正在比对，请稍等</div>
+                        <el-main v-if="activeStep !== 4" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                            <el-steps style="width: 800px" :active="activeStep" finish-status="success">
+                                <el-step title="选择标准条款" />
+                                <el-step title="上传待审核条款" />
+                                <el-step title="比对中" />
+                                <el-step title="比对完成" />
+                            </el-steps>
                         </el-main>
                         <!-- 上传完成且比对完成 -->
-                        <el-main v-if="hasUploadDone && hasCompareDone">
+                        <el-main v-else>
                             <el-table :data="clauseTableData" style="width: 100%">
                                 <!-- 条款编号列 -->
                                 <el-table-column type="index" label="序号" width="50">
@@ -120,12 +121,12 @@ export default {
         // 标准条款列表
         list_standard_clause(params).then((res) => {
             console.log("list_conversion", res)
-            if (res.data.code == 200) {
-                this.options = res.data.data
-                this.steps = 1
-            } else {
-                this.$message.error(res.data.message)
-            }
+            // if (res.data.code == 200) {
+            //     this.options = res.data.data
+            //     this.steps = 1
+            // } else {
+            //     this.$message.error(res.data.message)
+            // }
         }).catch((err) => {
 
         })
@@ -171,7 +172,7 @@ export default {
                 value: '选项3',
                 label: '安全生产教育培训制度'
             }],
-            value: '',
+            value: '选项1',
             clauseTableData: [
                 {
                     index: 1,
@@ -320,7 +321,7 @@ export default {
             // 是否比对完成
             hasCompareDone: false, 
             // 步骤条【0：选择标准条款，1：上传待审核条款，2：比对中，3：比对完成】
-            steps: 0,
+            activeStep: 1,
         };
     },
     watch: {
@@ -464,7 +465,7 @@ export default {
         },
 
         //上传文件的事件
-        uploadFile(item) {
+        async uploadFile(item) {
             //上传文件的需要formdata类型;所以要转
             var FormDatas = new FormData()
             FormDatas.append('file', item.file);
@@ -475,10 +476,13 @@ export default {
                 file: item.file
             }
             this.fileList.push(item.file);
-            upload_new_clause(params).then(res => {
+            upload_new_clause(params).then(async res => {
                 console.log("res-上传", res)
                 if (res.data.code == 200) {
                     this.hasUploadDone = true
+                    // 睡眠1s
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    this.activeStep = 2
                     // 比对
                     const compareparams = {
                         token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
@@ -486,17 +490,24 @@ export default {
                         new_id: res.data.data.id
                     }
                     compare_clause(compareparams, this.handleChunk1)
+                    // 睡眠1s
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    this.activeStep = 3
                 } else {
                     this.$message.error('上传失败!');
                 }
             })
         },
-        handleChunk1(first, content, end) {
+        async handleChunk1(first, content, end) {
             console.log("content", first, content)
+            
             // 初始化
             if (first) {
+                this.activeStep = 4
                 this.clauseTableData = []
                 this.hasCompareDone = true
+                // 睡眠2s
+                await new Promise(resolve => setTimeout(resolve, 2000));
             }
             // 结束
             if (end) {
