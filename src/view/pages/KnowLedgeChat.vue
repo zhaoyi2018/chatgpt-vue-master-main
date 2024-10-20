@@ -44,41 +44,20 @@
 
                                             <div v-for="(item, index1) in message.reference" :key="index1"
                                                 class="reference-item">
-                                                <div class="reference-content"
-                                                    @mouseenter="showFullReference(index, index1)"
-                                                    @mouseleave="hideFullReference(index, index1)"
-                                                    :style="{ height: isHovered ? 'auto' : '100px', width: '500px' }">
-                                                    <template v-if="message.isHovered[index1]">
-                                                        {{ item.content }}
-                                                    </template>
-
-                                                    <template v-else>
-                                                        <!-- 显示图片 -->
-                                                        <template v-if="item.image">
-                                                            <img :src="item.image" alt="图片描述" />
-                                                        </template>
-
-                                                        <!-- 显示表格 -->
-                                                        <template v-else-if="item.file_id">
-                                                            <div>
-                                                                <el-table :data="tableData" style="width: 100%">
-                                                                    <el-table-column prop="level" label="等级"
-                                                                        width="150"></el-table-column>
-                                                                    <el-table-column prop="capacityRange"
-                                                                        label="石油库储罐计算总容量TV(m³)"
-                                                                        width="300"></el-table-column>
-                                                                </el-table>
-                                                            </div>
-                                                        </template>
-
-                                                        <!-- 只显示文字 -->
-                                                        <template v-else>
-                                                            {{ item.standard_name }} {{ item.standard_clause }} {{item.standard_number }}
-                                                        </template>
-                                                    </template>
+                                                <!-- 对内容进行截取显示： 1，添加序号 2，截取长度 -->
+                                                <div class="reference-content" @click="showFullContent(item)">
+                                                    <!-- 添加序号 -->
+                                                    <span class="reference-number">{{ index1 + 1 }}. </span>
+                                                    <!-- 显示标准名称,条款,编号 -->
+                                                    <el-tag v-if="item.standard_name" size="mini">{{ item.standard_name }}-{{ item.standard_clause }}-{{ item.standard_number }}</el-tag>
+                                                    <!-- 表名 -->
+                                                    <el-tag v-else size="mini">{{ item.table }}</el-tag>
+                                                    <!-- 截取内容 -->
+                                                    <span class="reference-text">
+                                                        {{ truncateText(item.content, 20) }}
+                                                    </span>
+                                                    
                                                 </div>
-
-
                                             </div>
                                             <el-divider></el-divider>
                                         </div>
@@ -147,7 +126,32 @@
                 </el-container>
             </el-container>
         </el-main>
-
+        <!-- 相关内容弹窗组件， 居中显示 -->
+        <el-dialog
+            :visible.sync="dialogVisible"
+            :title="fullReference"
+            width="50%"
+            align-center
+        >
+            <vue-markdown :source="fullContent" @rendered="addClickEvents"></vue-markdown>
+        </el-dialog>
+        <!-- 添加预览页面的对话框 -->
+        <el-dialog
+            :visible.sync="previewDialogVisible"
+            title="图片预览"
+            width="50%"
+            append-to-body
+            align-center
+        >
+            <div class="image-container">
+                <img v-if="previewUrl !== '无图片'" :src="previewUrl" alt="预览图片" class="preview-image"/>
+                <div v-else class="no-image-placeholder">
+                    <i class="el-icon-picture-outline"></i>
+                    <p style="display: inline-block;">无法加载图片</p>
+                </div>
+            </div>
+            <!-- <iframe :src="previewUrl" style="width: 100%; height: 600px; border: none;"></iframe> -->
+        </el-dialog>
     </el-container>
 </template>
 
@@ -237,6 +241,12 @@ export default {
             headers: { "Content-Type": "multipart/form-data" },
             itemDetailsVisible: [],
             isHovered: [],
+            // 弹窗组件
+            dialogVisible: false,
+            fullContent: '',
+            fullReference: '',
+            previewDialogVisible: false,
+            previewUrl: "无图片"
         };
     },
     created() {
@@ -305,6 +315,53 @@ export default {
         }
     },
     methods: {
+        // 截取内容
+        truncateText(text, maxLength) {
+            if (text.length <= maxLength) {
+                return text;
+            }
+            return text.slice(0, maxLength) + '...';
+        },
+        // 显示完整内容
+        showFullContent(item) {
+            if (item.standard_name) {
+                this.fullReference = item.standard_name + "-" + item.standard_clause + "-" + item.standard_number;
+                // item.image = 'd13ed1d0-8afe-11ef-98cc-00163e1e6539'
+                this.fullContent = this.convertBracketsToSpans(item.content, item.image ? `http://121.43.126.21:8001/image/${item.image}` : "无图片");
+            } else {
+                this.fullReference = item.table;
+                this.fullContent = this.appendCustomLink(item.content, item.table, item.image ? `http://121.43.126.21:8001/image/${item.image}` : "无图片");
+            }
+            this.dialogVisible = true;
+            
+        },
+        // 追加自定义链接
+        appendCustomLink(text, title, url) {
+            return `<span class="clickable-text" style="font-weight: bolder;cursor: pointer;color: blue;" data-text="${title}" data-url="${url}" >${title}</span>\n\n${text}`;
+        },
+        // 将文本内【】标记的内容，转为VueMarkdown可识别的span结构
+        convertBracketsToSpans(text, url) {
+            const regex = /【(.+?)】/g;
+            return text.replace(regex, (match, p1) => {
+                return `<span class="clickable-text" style="font-weight: bolder;cursor: pointer;color: blue;s" data-text="${p1}" data-url="${url}" >【${p1}】</span>`;
+            });
+        },
+        // 添加点击事件
+        addClickEvents() {
+            this.$nextTick(() => {
+                const clickableTexts = document.querySelectorAll('.clickable-text');
+                clickableTexts.forEach(element => {
+                    element.addEventListener('click', this.handleClickableTextClick);
+                });
+            });
+        },
+        // 点击文本事件
+        handleClickableTextClick(event) {
+            const text = event.target.dataset.text;
+            const url = event.target.dataset.url;
+            this.previewUrl = url;
+            this.previewDialogVisible = true;
+        },
         showFullReference(messageIndex, referenceIndex) {
             console.log("this.chatMessages[messageIndex]", this.chatMessages[messageIndex])
             this.$set(this.chatMessages[messageIndex].isHovered, referenceIndex, true);
@@ -957,6 +1014,11 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     /* Show ellipsis for overflow text */
+    cursor: pointer;
+}
+
+.reference-content:hover {
+    color: blue;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -990,5 +1052,50 @@ export default {
     /* For Firefox: make scrollbar thin */
     scrollbar-color: #888 #f1f1f1;
     /* For Firefox: thumb and track color */
+}
+:deep(.align-center) {
+    font-weight: bolder;
+}
+</style>
+<style scoped>
+/* 添加新的样式 */
+:deep(.preview-dialog .el-dialog__body) {
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 80vh;
+}
+
+.image-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+
+:deep(.el-dialog){
+    display: flex;
+    flex-direction: column;
+    margin:0 !important;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    max-height:calc(100% - 30px);
+    max-width:calc(100% - 30px);
+}
+:deep(.el-dialog .el-dialog__body){
+    flex:1;
+    overflow: auto;
 }
 </style>
