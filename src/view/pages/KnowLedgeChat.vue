@@ -10,18 +10,18 @@
                     <el-header class="aside-header">
                         <el-button type="primary" icon="el-icon-plus" @click="newChat" round>新对话</el-button>
                     </el-header>
-                    <el-menu @select="handleSelect" class="custom-scrollbar"
+                    <el-menu @select="handleSelect" :default-active="activeIndex" class="custom-scrollbar"
                         style="background-color: #f2fbff; justify-content: center;  height:70vh; margin-bottom:20px; overflow-x: hidden; ">
                         <el-menu-item v-for="(question, index) in historyArrlist" :key="index" :index="index.toString()"
                             class="menu-item-history" @click="listConversion(index)">
-                            <span slot="title" @mouseover="showDeleteButton(index)"
+                            <div slot="title" @mouseover="showDeleteButton(index)"
                                 @mouseleave="hideDeleteButton(index)" class="menu-item-wrapper">
                                 <!-- {{ getUserContent(question.history) }} -->
-                                {{ question.name }}
+                                <div style="width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ question.name }}</div>
                                 <el-button v-show="question.showDeleteButton" type="text" icon="el-icon-close"
                                     @click.stop="deleteItem(index)"
                                     style="position: absolute; right: 5px; top: 55%; transform: translateY(-51%);"></el-button>
-                            </span>
+                            </div>
                         </el-menu-item>
                     </el-menu>
                 </el-aside>
@@ -156,7 +156,7 @@
 </template>
 
 <script>
-import { chatkbStreamgpt, getkbhistory, getChatMsg, chatgpt, chatupload, gethistory, setclause_check, getstatic, getChat, getChatchat, delete_dialogue, chatStreamgpt, getkbChat, getclauseChat, login, list_conversion } from "@/api/getData";
+import { chatkbStreamgpt, updateDialog, getkbhistory, getChatMsg, chatgpt, chatupload, gethistory, setclause_check, getChat, getChatchat, delete_dialogue, chatStreamgpt, getkbChat, getclauseChat, login, list_conversion } from "@/api/getData";
 import Index from "./chatHome/index.vue";
 import Emoji from "@/components/Emoji.vue";
 import Nav from "@/components/Nav.vue";
@@ -174,18 +174,31 @@ export default {
     },
     data() {
         return {
+            // 默认知识库id
+            defaultKbId: ['89bef038-8132-11ef-9800-2cf05d3470d1', '969c9f22-8132-11ef-8470-2cf05d3470d1', 'cae9d17d-8092-11ef-a840-2cf05d3470d1'],
+            // 当前回答内容
             currentStreamMessage: '',
+            // 左侧激活对话索引(从0开始)
             activeIndex: null,
             selected: '1',
-            chat_id: "",
+            // 对话id
+            dialogue_id: "",
+            /**
+             * 当前对话item简介
+             * {id,name，kb_ids, dialog_type}
+             * */ 
             newhistory: {},
+            /**
+             * 历史对话框列表
+             * [{id,name，kb_ids, dialog_type}]
+            */
             historyArrlist: [],
-            configs: [],
             promptall: [],
             models: [],
             promptdefaultvalue: 'default',
             dynamicMarginLeft: '50px',
             isCollapse: false,
+            // 输入框内容（用户问话内容）
             newMessage: '',
             cards: [
                 {
@@ -226,7 +239,17 @@ export default {
                 //     message: '帮我生成一个试题'
                 // }
             ],
+            /**
+             * 聊天消息（包括用户问话和回答）
+             * [{
+             * role: "角色", 
+             * content: "问话内容或回答内容", 
+             * reference: [{标准名称,条款,编号,内容,图片}]
+             * }]
+             * 
+            */
             chatMessages: [],
+            // 聊天是否开始
             chatStarted: false,
             chatMessagesList: [],
             //上传后的文件列表
@@ -250,56 +273,31 @@ export default {
         };
     },
     created() {
-        console.log("created", this.$root.configs)
         var token = ""
-        login().then((res) => {
-            console.log("login", res.data.data.access_token)
+        // 获取token
+        login().then((res) =>   {
+            // 获取token
             token = res.data.data.access_token
             var params = {
                 access_token: token
             }
-            console.log('params', params)
+            // 获取对话历史列表
             getChat(params).then((res) => {
-                console.log("getChat", res)
-                this.chat_id = res.id
+                // 设置对话id
+                this.dialogue_id = res.id
+                // 聊天开始
                 this.chatStarted = true;
+                // 设置历史记录
                 this.historyArrlist = res.data
             }).catch((err) => {
                 console.log("err")
             })
         })
-
-        getkbhistory().then((res) => {
-            console.log("gethistoryres", res)
-            this.historyArrlist = res.data
-        }).catch((err) => {
-            console.log("errr", err)
-        })
-        getstatic().then((res) => {
-            console.log("getstatic111", res.data)
-
-            this.configs = res.data.prompts
-
-            this.promptall = res.data.prompts.map(prompt => {
-                return {
-                    value: prompt.scene
-                };
-            });
-            this.models = res.data.models.map(prompt => {
-                return {
-                    value: prompt
-                };
-            });
-        }).catch((err) => {
-            console.log("err", err)
-        })
     },
     watch: {
-
         chatMessages: {
             handler(newMessages) {
                 this.scrollToBottom();
-                console.log("newMessages", newMessages)
                 newMessages.forEach(message => {
                     // 确保 message 对象具有 reference 属性并进行初始化
                     if (!message.reference) {
@@ -398,31 +396,29 @@ export default {
             this.$set(this.historyArrlist[index], 'showDeleteButton', false);
         },
         listConversion(index) {
-            console.log("list_conversion", this.historyArrlist[index])
-
             let params = {
                 id: this.historyArrlist[index].id,
                 token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g"
             }
             list_conversion(params).then((res) => {
-                console.log("list_conversion11111", res.data.data[0].reference)
-
+                // 设置对话id
+                this.dialogue_id = this.historyArrlist[index].id
+                // 聊天开始
                 this.chatStarted = true;
-                this.historyArrlist.forEach((item, i) => {
-                    item.showDeleteButton = i === index;
-                });
-                this.newhistory = res.data.data[0]
-                this.chatMessages.push({ content: res.data.data[0].question, role: 'user' });
-                this.chatMessages.push({ content: res.data.data[0].answer, role: 'assistant', reference: res.data.data[0].reference });
-                this.chat_id = res.data.data[0].id
-
+                // 设置聊天消息
+                this.chatMessages = []
+                // 循环设置聊天消息 
+                res.data.data.forEach(item => {
+                    // 设置用户问话 
+                    this.chatMessages.push({ content: item.question, role: 'user' });
+                    // 设置回答
+                    this.chatMessages.push({ content: item.answer, role: 'assistant', reference: item.reference });
+                })
             }).catch((err) => {
 
             })
         },
         deleteItem(index) {
-            console.log("deleteItem", this.historyArrlist[index])
-
             let params = {
                 dialog_id: this.historyArrlist[index].id,
                 token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
@@ -432,20 +428,37 @@ export default {
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                this.$message({
-                    type: 'success',
-                    message: '删除成功!'
-                });
                 delete_dialogue(params).then((res) => {
-                    this.historyArrlist.splice(index, 1);
-                    this.newMessage = ""
-                    this.chatStarted = false
-                    this.$nextTick(() => {
-                        document.activeElement.blur();
-                    });
-                    this.$nextTick(() => {
-                        this.$refs.dummyInput.focus();
-                    });
+                    // 判断是否删除成功 
+                    if (res.data.code !== 200) {
+                        this.$message({
+                            type: 'error',
+                            message: '删除失败!'
+                        });
+                    } else {
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功!'
+                        });
+                        // 删除历史记录
+                        this.historyArrlist.splice(index, 1);
+                        // 输入框内容初始化
+                        this.newMessage = ""
+                        // 聊天结束
+                        this.chatStarted = false
+                        // 移除对不存在元素的引用
+                        this.$nextTick(() => {
+                            if (this.activeIndex != null) {
+                                if (parseInt(this.activeIndex) > index) {   
+                                this.activeIndex = (parseInt(this.activeIndex) - 1).toString()
+                                } else if (parseInt(this.activeIndex) == index) {
+                                    this.activeIndex = null
+                                    this.dialogue_id = ""
+                                }
+                            }   
+                            document.activeElement.blur();
+                        });
+                    }
                 }).catch((err) => {
 
                 })
@@ -459,7 +472,7 @@ export default {
 
         },
         handleSelect(index) {
-            this.activeIndex = Number(index);
+            this.activeIndex = index.toString();
             // 处理选中项逻辑
         },
         updateNewMessage() {
@@ -520,83 +533,92 @@ export default {
                     v = c == 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
-        }
-        ,
-
-        startChat() {
-            console.log("this.chat_id", this.chat_id)
-
+        },
+        // 发送消息事件
+        async startChat() {
+            // 判断输入框内容是否为空
             if (this.newMessage.trim() !== '' || this.newMessage.trim().length > 0) {
+                // 判断对话id是否为空
+                if (this.dialogue_id == "") {
+                    // 清空聊天消息
+                    this.chatMessages = []
+                    // 新建对话
+                    this.newChat()
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+                // 添加聊天消息 
                 this.chatMessages.push({ content: this.newMessage, role: 'user' });
-                if (this.chat_id == "") {
-                    this.chat_id = this.guid()
-                }
-                console.log("chat_id", this.chat_id)
-                let config = {
-                    "model": "deepseek",
-                    "prompt": this.promptdefaultvalue,
-                    "knowledge": "default",
-                    "LLM_config": "default"
-                }
+                // 聊天参数
                 let params = {
-                    dialog_id: "83ba01b5-8222-11ef-b333-2cf05d3470d1",
+                    dialog_id: this.dialogue_id,
                     query: this.newMessage,
                     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
-                    // config: JSON.stringify(config)
-                    // history: JSON.stringify([{role:"hh",content:"xx"},{role:"hh",content:"xx"}])
-                    // {role:"hh",content:"xx"}
-                    // ,
                 }
-                console.log("params", params)
+                // 发送消息
                 chatkbStreamgpt(params, this.handleChunk, this.handleReferences);
+                
 
-
-            }
-            else {
-
-
+            } else {
+                // 提示输入内容
                 this.$alert('请输入内容', '提示', {
                     confirmButtonText: '确定',
-                    callback: action => {
-
-                    }
+                    callback: action => {}
                 });
-
-
             }
-
-
         },
+        /**
+         * 接收消息事件函数
+         * @param {boolean} first 是否是第一条消息
+         * @param {string} content 消息内容
+         * @param {string} reference 参考内容
+         * @param {boolean} end 是否是最后一条消息
+         * */ 
         handleChunk(first, content, reference, end) {
+            // 判断是否是第一条消息
             if (first) {
+                if (this.chatMessages.length == 1) {    
+                    // 构建当前会话框简介
+                    this.historyArrlist[parseInt(this.activeIndex)].name = this.newMessage
+                    this.historyArrlist[parseInt(this.activeIndex)].update_time = new Date().toISOString()
+                    // 更新会话名称
+                    const params = this.historyArrlist[parseInt(this.activeIndex)]
+                    params.token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g"
+                    params.dialog_id = params.id
+                    this.updateDialogName(params)
+                }
+                // 添加回答
                 this.chatMessages.push({ content: '', role: 'assistant', reference: JSON.parse(reference).reference });
+                // 输入框内容初始化
+                this.newMessage = '';
             }
+            // 获取最后一条消息
             const lastMessageIndex = this.chatMessages.length - 1;
+            // 判断是否是最后一条消息
             if (!end) {
                 this.chatMessages[lastMessageIndex].content += content;
                 this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
             } else {
                 this.chatMessages[lastMessageIndex].content = JSON.parse(content).response;
                 this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
-            }
-            
-            this.newhistory = {
-                dialogue_id: this.chat_id, history: this.chatMessages
-            }
-            const existingIndex = this.historyArrlist.findIndex(item => item.dialogue_id === this.chat_id);
-
-            if (existingIndex === -1) {
-                this.historyArrlist.unshift(this.newhistory);
-            } else {
-                console.log("Duplicate dialogue_id found, not adding.");
-            }
-            this.newMessage = '';
-            this.chatStarted = true;
-
+                // 聊天开始
+                this.chatStarted = true;
+            } 
         },
+        // 更新会话
+        updateDialogName(params) {
+            updateDialog(params).then((res) => {
+                console.log("res", res)
+            })
+        },
+        /**
+         * 接收参考内容事件函数
+         * @param {string} reference 参考内容
+         * */ 
         handleReferences(reference) {
             console.log("reference", JSON.parse(reference).reference)
+            // 获取最后一条消息
             const lastMessageIndex = this.chatMessages.length - 1;
+            // 更新最后一条消息内容
             this.chatMessages[lastMessageIndex].content = JSON.parse(reference).response;
 
             this.chatMessages[lastMessageIndex].reference = JSON.parse(reference).reference;
@@ -606,90 +628,57 @@ export default {
             this.itemDetailsVisible = Array(this.chatMessages[lastMessageIndex].reference.length).fill(false);
 
         },
+        /**
+         * 显示详情事件函数
+         * @param {number} index 索引
+         * */ 
         showDetails(index) {
             this.$set(this.itemDetailsVisible, index, true);
         },
+        /**
+         * 隐藏详情事件函数
+         * @param {number} index 索引
+         * */ 
         hideDetails(index) {
             this.$set(this.itemDetailsVisible, index, false);
         },
+        /**
+         * 新建对话事件函数
+         * */ 
         newChat() {
-            if (this.chatMessages.length == 0) {
-                //说明没有新建
+            // 判断聊天消息是否为空
+            if (this.chatMessages.length != 0) {
+                // 设置聊天消息
+                this.chatMessages = []
+            }
 
-                //                 {
-                // "token":
-                // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjc5MDU3Mj
-                // R9._NjHtNye7dq7J4Flg_Zw5i08H0PO-sSkWlcEgixXr84",
-                // "kb_ids": [
-                // "cae9d17d-8092-11ef-a840-2cf05d3470d1"
-                // ],
-                // "dialog_type": 1,
-                // "name": "对话1"
-                // }
-                var params = {
-                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
-                    kb_ids: ["cae9d17d-8092-11ef-a840-2cf05d3470d1"],
+             // 创建新会话
+             var params = {
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
+                kb_ids: this.defaultKbId,
+                dialog_type: 1,
+                name: "对话1"
+            }
+            getkbChat(params).then((res) => {
+                // 对话id设置
+                this.dialogue_id = res.data.dialog
+                // 聊天开始
+                this.chatStarted = true;
+                // 创建新会话
+                const newhistory = {
+                    id: this.dialogue_id,
+                    name: '新对话',
                     dialog_type: 1,
-                    name: "对话1"
+                    update_time: new Date().toISOString(),
+                    kb_ids: this.defaultKbId,
                 }
-                getkbChat(params).then((res) => {
-                    //
-                    console.log("getkbChat", res)
-
-                    this.chat_id = res.data.kb_ids[0]
-                    this.chatStarted = true;
-                    this.chatMessages = [{
-                        role: "user",
-                        content: "hhh"
-                    }]
-                }).catch((err) => {
-                    console.log("err")
-                })
-
-            }
-            else {
-                //保存在历史
-                this.newhistory.showDeleteButton = false
-                let newhistory = this.newhistory
-                var isDuplicate = this.historyArrlist.some(function (item) {
-                    return item.dialogue_id === newhistory.dialogue_id;
-                });
-
-                // 如果不存在相同 dialogue_id 的记录，则将新记录添加到历史记录数组中
-                if (!isDuplicate) {
-                    this.historyArrlist.unshift(newhistory);
-                }
-                else {
-                    getChat().then((res) => {
-                        console.log("getChat", res)
-                        this.chat_id = res.dialogue_id
-                        this.chatStarted = true;
-                        this.chatMessages = res.history
-                    }).catch((err) => {
-                        console.log("err")
-                    })
-                }
-                console.log(this.historyArrlist, "this.historyArrlist")
-            }
-
-        },
-
-        newChat1() {
-
-            if (this.newhistory !== "") {
-                this.historyArrlist.unshift(this.newhistory)
-
-            }
-            else {
-
-            }
-            this.chat_id = ""
-            this.chatStarted = false;
-
-            // if (this.chatMessages.length > 0) {
-            //     this.historyArrlist.push({ time: new Date(), content: this.chatMessages, title: this.chatMessages[0].content, showDeleteButton: false })
-            // }
-            this.chatMessages = [];
+                // 添加新对话
+                this.historyArrlist.unshift(newhistory);
+                // 设置左侧激活对话索引
+                this.activeIndex = '0'
+            }).catch((err) => {
+                console.log("err")
+            })
 
         },
         historyChat(question, index) {
@@ -700,7 +689,7 @@ export default {
             // });
             // this.newhistory = question
             // this.chatMessages = question.history
-            // this.chat_id = question.dialogue_id
+            // this.dialogue_id = question.dialogue_id
 
 
         },
@@ -875,8 +864,6 @@ export default {
 
 
 
-
-
 .feedback {
     font-family: 'Arial', sans-serif;
     font-size: 14px;
@@ -912,7 +899,7 @@ export default {
 }
 
 .chat-container {
-    max-height: 600px;
+    /* max-height: 600px; */
     /* 根据需要设置 */
     overflow-y: auto;
     margin-left: 20px;

@@ -22,16 +22,6 @@ export default {
     prompts:[],
   },
   created(){
-    getstatic().then((res)=>{
-      console.log("全局",res.data)
-      this.configs = res.data.configs
-      this.kbs = res.data.kbs
-      this.models = res.data.models
-      this.prompts = res.data.prompts
-
-    }).catch((err)=>{
-      console.log("err",err)
-    })
   }
 
 }

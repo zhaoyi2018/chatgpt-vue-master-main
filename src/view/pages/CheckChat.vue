@@ -88,7 +88,7 @@
 
 <script>
 import axios from 'axios';
-import { list_compare_history, compare_clause, upload_new_clause, list_standard_clause, clause_doc_stream_check, delete_dialogue, chatclauseStreamgpt, getclausehistory, getChatMsg, chatgpt, chatupload, gethistory, setclause_check, getstatic, getChat, getChatchat, getclauseChat } from "@/api/getData";
+import { list_compare_history, compare_clause, upload_new_clause, list_standard_clause, clause_doc_stream_check, delete_dialogue, chatclauseStreamgpt, getclausehistory, getChatMsg, chatgpt, chatupload, gethistory, setclause_check, getChat, getChatchat, getclauseChat } from "@/api/getData";
 import Emoji from "@/components/Emoji.vue";
 import Nav from "@/components/Nav.vue";
 import commonMethodsMixin from '../../util/publicfun.js';
@@ -133,31 +133,6 @@ export default {
         list_compare_history(params).then((res) => {
             console.log("list_compare_history", res.data.data)
             this.historyArrlist = res.data.data
-        })
-
-        // getclausehistory().then((res) => {
-        //     console.log("gethistoryres", res.data)
-        //     this.historyArrlist = res.data
-        // }).catch((err) => {
-        //     console.log("errr", err)
-        // })
-        getstatic().then((res) => {
-            console.log("getstatic111", res.data)
-
-            this.configs = res.data.prompts
-
-            this.promptall = res.data.prompts.map(prompt => {
-                return {
-                    value: prompt.scene
-                };
-            });
-            this.models = res.data.models.map(prompt => {
-                return {
-                    value: prompt
-                };
-            });
-        }).catch((err) => {
-            console.log("err", err)
         })
     },
     data() {

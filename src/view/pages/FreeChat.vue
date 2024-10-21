@@ -163,7 +163,7 @@
 </template>
 
 <script>
-import { chatFileStreamgpt, chatImgStreamgpt, upload_img, upload_doc, chatkbStreamgpt, chatStreamgpt, getChatMsg, gethistory, getChat, getstatic, chatgpt, getChatchat } from "@/api/getData";
+import { chatFileStreamgpt, chatImgStreamgpt, upload_img, upload_doc, chatkbStreamgpt, chatStreamgpt, getChatMsg, gethistory, getChat, chatgpt, getChatchat } from "@/api/getData";
 import Emoji from "@/components/Emoji.vue";
 import Nav from "@/components/Nav.vue";
 import commonMethodsMixin from '../../util/publicfun.js';
@@ -290,22 +290,6 @@ export default {
             this.historyArrlist = res.data
         }).catch((err) => {
             console.log("errr", err)
-        })
-        getstatic().then((res) => {
-            console.log("全局11111", res.data)
-
-            this.promptall = res.data.prompts.map(prompt => {
-                return {
-                    value: prompt.scene
-                };
-            });
-            this.models = res.data.models.map(prompt => {
-                return {
-                    value: prompt
-                };
-            });
-        }).catch((err) => {
-            console.log("err", err)
         })
     },
     mounted() {

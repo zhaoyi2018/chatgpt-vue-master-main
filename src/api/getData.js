@@ -35,6 +35,14 @@ export const getChat = params => {
   
   }).then(res => res.data)
 }
+// 更新会话
+export const updateDialog = params => {
+  return axios({
+    method: 'post',
+    url: `http://121.43.126.21:8001/dialog/update_dialog`,
+    data: params
+  })
+}
 // 获取单个聊天信息
 export const getChatchat = params => {
   return axios({
@@ -86,19 +94,6 @@ export const gethistory = params => {
     return res
   })
 }
-// 获取history
-export const getkbhistory = params => {
-  return axios({
-    method: 'get',
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    },
-    url: `http://121.43.126.21:8001/history/kb_chat_history`,
-    data: params,
-  }).then(res => {
-    return res
-  })
-}
 
 // 获取exam
 export const getexam = params => {
@@ -143,13 +138,8 @@ export const setclause_check = params => {
 export const delete_dialogue = params => {
   return axios({
     method: 'post',
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    },
     url: `http://121.43.126.21:8001/dialog/delete_dialog`,
     data: params,
-  }).then(res => {
-    return res
   })
 }
 // 获取对话下所有会话
