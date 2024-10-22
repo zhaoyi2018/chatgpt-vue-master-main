@@ -264,12 +264,22 @@ export const chatkbStreamgpt = async (params, handleChunk, handleReferences) => 
     body: JSON.stringify(params)
   });
 
+function processedText(text) {
+  return text
+    .replace(/\n/g, '\\n')  // 换行符
+    .replace(/\t/g, '\\t')  // 制表符
+    .replace(/\r/g, '\\r')  // 回车符
+    .replace(/\\/g, '\\\\') // 反斜杠
+    .replace(/\'/g, '\\\'') // 单引号
+    .replace(/\"/g, '\\"')  // 双引号
+    .replace(/\u2665/g, '\\u2665'); // Unicode字符
+}
+
   const readableStream = response.body;
   if (readableStream) {
     const reader = readableStream.getReader();
     let first = true;
-    let isReferences = false;
-    let references = '';
+    let newline = false;
     
     while (true) {
       const { value, done } = await reader.read();
@@ -280,19 +290,23 @@ export const chatkbStreamgpt = async (params, handleChunk, handleReferences) => 
       const lines = chunkValue.split('\n').filter(line => line.startsWith('data: '));
       lines.forEach(line => {
         let content = line.slice(6); // Remove 'data: ' prefix and trim whitespace
-        console.log("my-content", content)
         if (content.startsWith('{"reference"')) {
           handleChunk(first, '', content, false);
         } else if (content.startsWith('{"response"')) {
           handleChunk(first, content, null, true);
         } else {
-          content = content.length >= 2 ? content.substring(0, content.length - 1) : content
+          if (content.length <= 1 && !newline) {
+            content = '\n'
+            newline = true;
+          } else {
+            newline = false;
+            content = content.length >= 2 ? content.substring(0, content.length - 1) : ''
+          }
           handleChunk(first, content, null, false);
         }
         first = false;
       });
     }
-    
     reader.releaseLock();
     
     // if (isReferences && references) {

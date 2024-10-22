@@ -402,8 +402,8 @@ export default {
                 this.chatMessages[lastMessageIndex].content += content;
                 this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
             } else {
-                this.chatMessages[lastMessageIndex].content = JSON.parse(content).response;
-                this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
+                // this.chatMessages[lastMessageIndex].content = JSON.parse(content).response;
+                // this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
                 this.chatStarted = true;
             } 
         },
