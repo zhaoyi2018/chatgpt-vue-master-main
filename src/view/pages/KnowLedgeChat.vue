@@ -2,7 +2,12 @@
     <el-container class="background-container">
         <!-- 页面头部 -->
         <el-header class="header-container" style="height: 60px;">
-            <img src="../../imgs/logo1.png" class="logo" />
+            <div class="header-left">
+                <el-button type="text" icon="el-icon-back" @click="goToHome">返回主页</el-button>
+            </div>
+            <div class="header-right">
+                <img src="../../imgs/logo1.png" class="logo" />
+            </div>
         </el-header>
         
         <!-- 页面主体 -->
@@ -137,7 +142,7 @@ export default {
         return {
             // 默认知识库id
             defaultKbId: ['89bef038-8132-11ef-9800-2cf05d3470d1', '969c9f22-8132-11ef-8470-2cf05d3470d1', 'cae9d17d-8092-11ef-a840-2cf05d3470d1'],
-            // 左侧激活对话索引(���0开始)
+            // 左侧激活对话索引(0开始)
             activeIndex: null,
             // 对话id
             dialogue_id: "",
@@ -462,6 +467,11 @@ export default {
                 console.error("创建新对话失败", err);
             }
         },
+        
+        // 添加新方法
+        goToHome() {
+            this.$router.push('/ChatHome');
+        }
     }
 }
 </script>
@@ -484,18 +494,38 @@ export default {
 
 .header-container {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
-    margin-left: 50px;
-    height: 40px;
-    justify-content: center;
+    padding: 0 20px;
+    height: 60px;
+}
 
-    /* border-bottom: 1px solid #e0e0e0; */
+.header-left {
+    display: flex;
+    align-items: center;
+    margin-left: 27px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 添加这行来使内容居中 */
+    flex-grow: 1; /* 添加这行使header-right占据剩余空间 */
+}
+
+.el-button--text {
+    color: #1385f6;
+    font-size: 16px;
+}
+
+.el-button--text:hover {
+    color: #409EFF;
 }
 
 .logo {
-    width: 125px;
-    height: 50px;
+    max-height: 40px; /* 调整logo的最大高度 */
+    width: auto;
+    object-fit: contain;
 }
 
 .title {
@@ -782,6 +812,8 @@ export default {
     overflow: auto;
 }
 </style>
+
+
 
 
 

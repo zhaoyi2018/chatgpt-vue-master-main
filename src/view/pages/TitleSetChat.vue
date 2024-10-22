@@ -1,7 +1,12 @@
 <template>
   <el-container  class="background-container">
     <el-header class="header-container" style="height: 40px;">
-            <img src="../../imgs/logo1.png" class="logo" />
+        <div class="header-left">
+          <el-button type="text" icon="el-icon-back" @click="goToHome">返回主页</el-button>
+        </div>
+        <div class="header-right">
+          <img src="../../imgs/logo1.png" class="logo" />
+        </div>
             
         </el-header>
     <el-container class="main-container">
@@ -449,6 +454,11 @@ export default {
       this.totalSize = this.$refs.table.tableData.length;
       console.log(this.totalSize, this.$refs.table.tableData);
     },
+        
+    // 添加新方法
+    goToHome() {
+        this.$router.push('/ChatHome');
+    }
 
   }
 }

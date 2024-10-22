@@ -2,7 +2,12 @@
     <el-container class="background-container">
         <!-- 页面头部 -->
         <el-header class="header-container" style="height: 60px;">
-            <img src="../../imgs/logo1.png" class="logo" width="80px" />
+            <div class="header-left">
+                <el-button type="text" icon="el-icon-back" @click="goToHome">返回主页</el-button>
+            </div>
+            <div class="header-right">
+                <img src="../../imgs/logo1.png" class="logo" />
+            </div>
         </el-header>
         
         <el-main style="padding: 0px;">
@@ -771,6 +776,10 @@ export default {
         removeFile(index) {
             this.fileList = []
         },
+        // 添加新方法
+        goToHome() {
+            this.$router.push('/ChatHome');
+        }
     }
 }
 </script>
