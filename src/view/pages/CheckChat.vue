@@ -44,7 +44,7 @@
                             </el-select>
                             
                             <!-- 上传新条款按钮 -->
-                            <el-upload class="upload-demo" action :http-request="uploadFile" ref="upload"
+                            <el-upload class="upload-demo" action :http-request="uploadFile" :disabled="value == ''" ref="upload"
                                 :show-file-list="false" style="margin-left: 10px;">
                                 <i class="el-icon-upload"></i>
                                 <div class="el-upload__text">上传新条款</div>
@@ -121,10 +121,17 @@ export default {
         
         // 获取标准条款列表
         list_standard_clause(params).then((res) => {
-            console.log("list_conversion", res)
-            // 处理响应...
+            if (res.data.code == 200) {
+                this.options = this.uniqueByField(res.data.data, 'file_id').map(item => ({
+                    value: item.file_id,
+                    label: item.clause_name
+                }))
+                this.value = this.options.length > 0 ? this.options[0].value : ''
+            } else {
+                this.$message.error('获取标准条款列表失败!');
+            }
         }).catch((err) => {
-            // 错误处理...
+            this.$message.error('获取标准条款列表失败!');
         })
         
         // 获取比对历史记录
@@ -134,9 +141,11 @@ export default {
         })
     },
     
+    
     // 组件数据
     data() {
         return {
+            // 标准条款下拉框
             options: [{
                 value: '选项1',
                 label: '安全培训需求调查'
@@ -147,7 +156,9 @@ export default {
                 value: '选项3',
                 label: '安全生产教育培训制度'
             }],
+            // 标准条款下拉框选中值 
             value: '选项1',
+            // 比对结果表格数据
             clauseTableData: [
                 {
                     index: 1,
@@ -321,6 +332,18 @@ export default {
     
     // 方法定义
     methods: {
+        // 去重
+        uniqueByField(arr, field) {
+            const seen = new Set();
+            return arr.filter(item => {
+                const value = item[field];
+                if (!seen.has(value)) {
+                    seen.add(value);
+                    return true;
+                }
+                return false;
+            });
+        },
         // 历史聊天记录选择
         historyChat(question, index) {
             console.log("this.question", question)
@@ -495,7 +518,7 @@ export default {
                     // 比对
                     const compareparams = {
                         token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
-                        stand_id: "ec916c06-8706-11ef-aa4f-00163e1e6539",
+                        stand_id: this.value,
                         new_id: res.data.data.id
                     }
                     compare_clause(compareparams, this.handleChunk1)

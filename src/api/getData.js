@@ -171,13 +171,7 @@ export const list_conversion = params => {
 export const list_standard_clause = params => {
   return axios({
     method: 'get',
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    },
     url: `http://121.43.126.21:8001/clause/list_standard_clause?token=${params.token}`,
-    data: params,
-  }).then(res => {
-    return res
   })
 }
 
