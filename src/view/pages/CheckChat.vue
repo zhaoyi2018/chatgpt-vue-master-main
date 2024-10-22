@@ -1,16 +1,20 @@
 <template>
     <el-container class="background-container">
+        <!-- 页面头部 -->
         <el-header class="header-container" style="height: 60px;">
             <img src="../../imgs/logo1.png" class="logo" width="80px" />
-
         </el-header>
+        
         <el-main style="padding: 0px;">
             <el-container class="main-container">
+                <!-- 左侧边栏 -->
                 <el-aside width="200px" class="aside-container">
                     <el-header class="aside-header">
+                        <!-- 新建条款按钮 -->
                         <el-button type="primary" icon="el-icon-plus" @click="newChat" round>新条款</el-button>
                     </el-header>
-                    <!-- Sidebar content here -->
+                    
+                    <!-- 历史记录列表 -->
                     <el-menu @select="handleSelect" class="custom-scrollbar"
                         style="background-color: #f2fbff; justify-content: center;  height:70vh; margin-bottom:20px; overflow-x: hidden; ">
                         <el-menu-item v-for="(question, index) in historyArrlist" :key="index" :index="index.toString()"
@@ -18,6 +22,7 @@
                             <span slot="title" @mouseover="showDeleteButton(index)"
                                 @mouseleave="hideDeleteButton(index)" class="menu-item-wrapper">
                                 {{ question.name }}
+                                <!-- 删除按钮 -->
                                 <el-button v-show="question.showDeleteButton" type="text" icon="el-icon-close"
                                     @click.stop="deleteItem(index)"
                                     style="position: absolute; right: 5px; top: 55%; transform: translateY(-51%);"></el-button>
@@ -25,21 +30,28 @@
                         </el-menu-item>
                     </el-menu>
                 </el-aside>
+                
+                <!-- 右侧主要内容区 -->
                 <el-container>
                     <el-main>
+                        <!-- 顶部选择和上传区域 -->
                         <div ref="chatContainer" style="display: flex; justify-content: flex-start">
+                            <!-- 选择标准条款下拉框 -->
                             <el-select placeholder="请选择标准条款" v-model="value">
                                 <el-option v-for="item in options" :key="item.value" :label="item.label"
                                     :value="item.value">
                                 </el-option>
                             </el-select>
+                            
+                            <!-- 上传新条款按钮 -->
                             <el-upload class="upload-demo" action :http-request="uploadFile" ref="upload"
                                 :show-file-list="false" style="margin-left: 10px;">
                                 <i class="el-icon-upload"></i>
                                 <div class="el-upload__text">上传新条款</div>
                             </el-upload>
                         </div>
-                        <!-- 未上传 -->
+                        
+                        <!-- 步骤条显示区域 -->
                         <el-main v-if="activeStep !== 4" style="display: flex; justify-content: center; align-items: center; height: 100%;">
                             <el-steps style="width: 800px" :active="activeStep" finish-status="success">
                                 <el-step title="选择标准条款" />
@@ -48,45 +60,36 @@
                                 <el-step title="比对完成" />
                             </el-steps>
                         </el-main>
-                        <!-- 上传完成且比对完成 -->
+                        
+                        <!-- 比对结果表格 -->
                         <el-main v-else style="padding: 20px 0px">
                             <el-table :data="clauseTableData" style="width: 100%">
-                                <!-- 条款编号列 -->
+                                <!-- 表格列定义 -->
                                 <el-table-column type="index" label="序号" width="50" align="center">
                                 </el-table-column>
                                 <el-table-column prop="institution" label="制度要素" width="100">
                                 </el-table-column>
-
-                                <!-- 条款名称列 -->
                                 <el-table-column prop="clause_number" label="法规条款" width="150">
                                 </el-table-column>
-
-                                <!-- 原文列 -->
                                 <el-table-column prop="original_text" label="法规原文" width="340">
                                 </el-table-column>
                                 <el-table-column prop="related_chunks.content" label="企业制度" width="442">
                                 </el-table-column>
-                                <!-- 审核结果列 -->
                                 <el-table-column prop="review_result" label="检查结果" width="50">
                                 </el-table-column>
-
-                                <!-- 审核建议列 -->
                                 <el-table-column prop="advice" label="修改建议" align="center">
                                 </el-table-column>
                             </el-table>
                         </el-main>
                     </el-main>
-
                 </el-container>
-
             </el-container>
         </el-main>
-
-
     </el-container>
 </template>
 
 <script>
+// 导入所需的模块和组件
 import axios from 'axios';
 import { list_compare_history, compare_clause, upload_new_clause, list_standard_clause, clause_doc_stream_check, delete_dialogue, chatclauseStreamgpt, getclausehistory, getChatMsg, chatgpt, chatupload, gethistory, setclause_check, getChat, getChatchat, getclauseChat } from "@/api/getData";
 import Emoji from "@/components/Emoji.vue";
@@ -96,45 +99,43 @@ import StreamText from '@/components/StreamText.vue';
 import VueMarkdown from 'vue-markdown';
 
 export default {
+    // 混入公共方法
     mixins: [commonMethodsMixin],
+    
+    // 注册使用的组件
     components: {
         Emoji,
         Nav,
         StreamText,
         VueMarkdown
     },
+    
+    // 生命周期钩子 - 组件创建时
     created() {
         console.log("created", this.$root.configs)
-        // let compareparams = {
-        //     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
-        //     stand_id: "ec916c06-8706-11ef-aa4f-00163e1e6539",
-        //     new_id: "ee29e442-8a2d-11ef-9596-00163e1e6539"
-        // }
-        // console.log("compareparams", compareparams)
-        // compare_clause(compareparams, this.handleChunk1).then((res) => {
-        //     console.log("res", res)
-        // })
+        
+        // 定义请求参数
         let params = {
             token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g"
         }
         console.log("params", params)
-        // 标准条款列表
+        
+        // 获取标准条款列表
         list_standard_clause(params).then((res) => {
             console.log("list_conversion", res)
-            // if (res.data.code == 200) {
-            //     this.options = res.data.data
-            //     this.steps = 1
-            // } else {
-            //     this.$message.error(res.data.message)
-            // }
+            // 处理响应...
         }).catch((err) => {
-
+            // 错误处理...
         })
+        
+        // 获取比对历史记录
         list_compare_history(params).then((res) => {
             console.log("list_compare_history", res.data.data)
             this.historyArrlist = res.data.data
         })
     },
+    
+    // 组件数据
     data() {
         return {
             options: [{
@@ -299,8 +300,9 @@ export default {
             activeStep: 1,
         };
     },
+    
+    // 侦听器
     watch: {
-
         chatMessages: {
             handler(newMessages) {
                 this.scrollToBottom();
@@ -319,7 +321,10 @@ export default {
             deep: true
         }
     },
+    
+    // 方法定义
     methods: {
+        // 历史聊天记录选择
         historyChat(question, index) {
             console.log("this.question", question)
             this.chatStarted = true;
@@ -330,6 +335,8 @@ export default {
             this.chatMessages = question.history
             this.chat_id = question.dialogue_id
         },
+        
+        // 滚动到底部
         scrollToBottom() {
             this.$nextTick(() => {
                 const container = this.$refs.chatContainer;
@@ -338,19 +345,29 @@ export default {
                 }
             });
         },
+        
+        // 显示完整引用
         showFullReference(messageIndex, referenceIndex) {
             console.log("this.chatMessages[messageIndex]", this.chatMessages[messageIndex])
             this.$set(this.chatMessages[messageIndex].isHovered, referenceIndex, true);
         },
+        
+        // 隐藏完整引用
         hideFullReference(messageIndex, referenceIndex) {
             this.$set(this.chatMessages[messageIndex].isHovered, referenceIndex, false);
         },
+        
+        // 显示删除按钮
         showDeleteButton(index) {
             this.$set(this.historyArrlist[index], 'showDeleteButton', true);
         },
+        
+        // 隐藏删除按钮
         hideDeleteButton(index) {
             this.$set(this.historyArrlist[index], 'showDeleteButton', false);
         },
+        
+        // 删除项目
         deleteItem(index) {
             console.log("deleteItem", this.historyArrlist[index])
 
@@ -389,10 +406,14 @@ export default {
             });
 
         },
+        
+        // 处理选择
         handleSelect(index) {
             this.activeIndex = Number(index);
             // 处理选中项逻辑
         },
+        
+        // 获取用户内容
         getUserContent(history) {
             return history.name
             // if (history != null) {
@@ -404,10 +425,14 @@ export default {
             // }
 
         },
+        
+        // 更新折叠状态
         updateIsCollapse(value) {
             this.isCollapse = value;
             // this.updateIsCollapse(value);
         },
+        
+        // 上传前检查
         beforeUpload(file) {
             const FileExt = file.name.split('.').pop().toLowerCase();
             const isLt50M = file.size / 1024 / 1024 < 50;
@@ -424,6 +449,8 @@ export default {
 
             return true;
         },
+        
+        // 处理关闭
         handleClose(index) {
             this.fileList.splice(index, 1);
             if (this.fileList.length === 0) {
@@ -431,6 +458,8 @@ export default {
                 this.$set(this.rules.url, 0, { required: true, validator: this.validatorUrl, trigger: 'blur' });
             }
         },
+        
+        // 处理超出限制
         handleExceed() {
             this.$message({
                 type: 'warning',
@@ -438,8 +467,8 @@ export default {
             });
             return;
         },
-
-        //上传文件的事件
+        
+        // 上传文件
         async uploadFile(item) {
             //上传文件的需要formdata类型;所以要转
             var FormDatas = new FormData()
@@ -473,43 +502,32 @@ export default {
                 }
             })
         },
-        async handleChunk1(first, content, end) {
-            console.log("content", first, content)
-
-            // 初始化
-            if (first) {
-                this.activeStep = 4
-                this.clauseTableData = []
-                this.hasCompareDone = true
-                // 睡眠2s
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-            // 结束
-            if (end) {
-                this.$message.success('比对完成!');
-                return
-            }
-            // 比对内容插入
-            this.clauseTableData.push(JSON.parse(content))
-        },
-        //上传成功后的回调
+        
+        // 处理上传成功
         handleSuccess() {
 
         },
+        
+        // 移除前处理
         beforeRemove() {
 
         },
+        
+        // 处理预览
         handlePreview() {
 
         },
+        
+        // 生成GUID
         guid() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                 var r = Math.random() * 16 | 0,
                     v = c == 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
-        }
-        ,
+        },
+        
+        // 开始聊天
         startChat() {
             console.log("this.chat_id", this.chat_id)
 
@@ -569,6 +587,8 @@ export default {
 
 
         },
+        
+        // 处理数据块
         handleChunk(first, content) {
             if (first) {
                 this.chatMessages.push({ content: '', role: 'assistant', reference: [] });
@@ -591,6 +611,8 @@ export default {
             this.newMessage = '';
             this.chatStarted = true;
         },
+        
+        // 处理引用
         handleReferences(reference) {
             console.log("this.chatMessages111", this.chatMessages);
 
@@ -624,7 +646,8 @@ export default {
                 this.historyArrlist[existingIndex] = this.newhistory;
             }
         },
-
+        
+        // 新建聊天
         newChat() {
             if (this.chatMessages.length == 0) {
                 //说明没有新建
@@ -666,47 +689,28 @@ export default {
                 console.log(this.historyArrlist, "this.historyArrlist")
             }
         },
-        // startchat() {
-        //     if (this.newMessage.trim() !== '') {
-        //         console.log(" this.newMessage", this.newMessage)
-        //         this.chatMessages.push({ content: this.newMessage, role: 'user' });
-        //     }
-        //     if (this.chat_id == "") {
-        //         this.chat_id = this.guid()
-        //     }
-        //     console.log("chat_id", this.chat_id)
-        //     let params = {
-        //         dialogue_id: this.chat_id,
-        //         query: this.newMessage,
-        //         config: "default"
-        //         // history: JSON.stringify([{role:"hh",content:"xx"},{role:"hh",content:"xx"}])
-        //         // {role:"hh",content:"xx"}
-        //         // ,
-        //     }
-        //     console.log("params", params)
-        //     chatgpt(params).then((res) => {
-        //         console.log("resresres", res.data)
-        //         this.chatMessages.push({ content: res.data.response, role: 'assistant', reference: res.data.reference });
-        //         this.newhistory = {
-        //             dialogue_id: this.chat_id, history: this.chatMessages
-        //         }
-
-        //         this.newMessage = ''; // Clear the input after sending.
-        //         this.chatStarted = true; // Switch to chat view.
-        //     });
-        // },
+        
+        // 发送消息
         sendMessage(text) {
             this.newMessage = text;
         },
+        
+        // 切换折叠状态
         toggleCollapse() {
             this.isCollapse = !this.isCollapse; // 切换状态
         },
+        
+        // 处理打开
         handleOpen(key, keyPath) {
             console.log(key, keyPath);
         },
+        
+        // 处理关闭
         handleClose(key, keyPath) {
             console.log(key, keyPath);
         },
+        
+        // 页面跳转方法
         goToMain() {
             window.location.href = '#/ChatHome';
         },
@@ -734,10 +738,11 @@ export default {
         goToHelp() {
             window.location.href = '#/HelpChat';
         },
+        
+        // 移除文件
         removeFile(index) {
             this.fileList = []
         },
-
     }
 }
 </script>
