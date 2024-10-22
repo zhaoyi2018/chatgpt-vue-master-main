@@ -16,7 +16,7 @@
                 <el-aside width="200px" class="aside-container">
                     <el-header class="aside-header">
                         <!-- 新建条款按钮 -->
-                        <el-button type="primary" icon="el-icon-plus" @click="newChat" round>新条款</el-button>
+                        <el-button type="primary" icon="el-icon-plus" :disabled="!hasCompareDone" @click="newChat" round>新条款</el-button>
                     </el-header>
                     
                     <!-- 历史记录列表 -->
@@ -448,6 +448,7 @@ export default {
             // 处理选中项逻辑
             this.clauseTableData = this.historyArrlist[index].compare_result
             this.activeStep = 4;
+            this.hasCompareDone = true;
             this.scrollTableToTop();
         },
         
@@ -539,6 +540,9 @@ export default {
                 } else {
                     this.$message.error('上传失败!');
                 }
+            }).catch((err) => {
+                console.log(err.response.data.msg)
+                this.$message.error('上传失败!, 错误信息：' + err.response.data.msg);
             })
         },
         
@@ -688,45 +692,8 @@ export default {
         
         // 新建聊天
         newChat() {
-            if (this.chatMessages.length == 0) {
-                //说明没有新建
-                getclauseChat().then((res) => {
-                    //
-                    console.log("getclauseChat", res)
-
-                    this.chat_id = res.dialogue_id
-                    this.chatStarted = true;
-                    console.log("chatStarted", this.chatStarted)
-
-                    this.chatMessages = res.history
-                }).catch((err) => {
-                    console.log("err")
-                })
-            }
-            else {
-                //保存在历史
-                this.newhistory.showDeleteButton = false
-                let newhistory = this.newhistory
-                var isDuplicate = this.historyArrlist.some(function (item) {
-                    return item.dialogue_id === newhistory.dialogue_id;
-                });
-
-                // 如果不存在相同 dialogue_id 的记录，则将新记录添加到历史记录数组中
-                if (!isDuplicate) {
-                    this.historyArrlist.unshift(newhistory);
-                }
-                else {
-                    getChat().then((res) => {
-                        console.log("getChat", res)
-                        this.chat_id = res.dialogue_id
-                        this.chatStarted = true;
-                        this.chatMessages = res.history
-                    }).catch((err) => {
-                        console.log("err")
-                    })
-                }
-                console.log(this.historyArrlist, "this.historyArrlist")
-            }
+            this.activeStep = 1
+            this.hasCompareDone = false
         },
         
         // 发送消息
@@ -813,11 +780,17 @@ export default {
             if (first) {
                 this.activeStep = 4
                 this.clauseTableData = []
-                this.hasCompareDone = true
+                // 构建新对比历史
+                const newHistory = {
+                    name: this.options.f,
+                    compare_result: []
+                }
+                this.historyArrlist.unshift(newHistory)
             }
             // 结束
             if (end) {
                 console.log("比对完成")
+                this.hasCompareDone = true
                 return
             }
             // 比对内容插入
@@ -825,6 +798,7 @@ export default {
                 try {
                     const jsonData = JSON.parse(content);
                     this.clauseTableData.push(jsonData);
+                    this.historyArrlist[0].compare_result.push(jsonData)
                     this.scrollTableToBottom(); // 每次添加新数据后滚动到底部
                 } catch (error) {
                     console.error('Error parsing JSON:', error);
