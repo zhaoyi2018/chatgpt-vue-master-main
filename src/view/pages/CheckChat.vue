@@ -71,22 +71,23 @@
                             <el-table 
                                 ref="clauseTable"
                                 :data="clauseTableData" 
-                                style="width: max-content; min-width: 100%;"
-                                :height="'70vh'">
+                                style="width: 100%;"
+                                :height="'70vh'"
+                                show-overflow-tooltip>
                                 <!-- 表格列定义 -->
-                                <el-table-column type="index" label="序号" width="50" align="center">
+                                <el-table-column type="index" label="序号" min-width="5%" align="center">
                                 </el-table-column>
-                                <el-table-column prop="institution" label="制度要素" width="100">
+                                <el-table-column prop="institution" label="制度要素" min-width="10%" show-overflow-tooltip>
                                 </el-table-column>
-                                <el-table-column prop="clause_number" label="法规条款" width="150">
+                                <el-table-column prop="clause_number" label="法规条款" min-width="15%" show-overflow-tooltip>
                                 </el-table-column>
-                                <el-table-column prop="original_text" label="法规原文" width="340">
+                                <el-table-column prop="original_text" label="法规原文" min-width="20%" show-overflow-tooltip>
                                 </el-table-column>
-                                <el-table-column prop="related_chunks.content" label="企业制度" width="442">
+                                <el-table-column prop="related_chunks.content" label="企业制度" min-width="25%" show-overflow-tooltip>
                                 </el-table-column>
-                                <el-table-column prop="review_result" label="检查结果" width="50">
+                                <el-table-column prop="review_result" label="检查结果" min-width="5%" show-overflow-tooltip>
                                 </el-table-column>
-                                <el-table-column prop="advice" label="修改建议" align="center">
+                                <el-table-column prop="advice" label="修改建议" min-width="20%" show-overflow-tooltip>
                                 </el-table-column>
                             </el-table>
                         </el-main>
@@ -855,21 +856,6 @@ export default {
     background-color: transparent;
     justify-content: space-around;
     flex-direction: row;
-}
-
-.upload-icon,
-.send-btn {
-    /* background: transparent;
-    border: none; */
-
-}
-
-.icon-btn {
-    /* background: transparent;
-    border: none; */
-    /* color: #c0c4cc; */
-    /* 这个颜色可以根据你的设计调整 */
-    /* padding: 0 12px; */
 }
 
 .input-field-wrapper {
