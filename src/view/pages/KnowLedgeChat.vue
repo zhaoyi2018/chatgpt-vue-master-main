@@ -1,11 +1,14 @@
 <template>
     <el-container class="background-container">
+        <!-- 页面头部 -->
         <el-header class="header-container" style="height: 60px;">
             <img src="../../imgs/logo1.png" class="logo" />
 
         </el-header>
+        <!-- 页面主体 -->
         <el-main style="padding: 0px;">
             <el-container class="main-container">
+                <!-- 左侧边栏 -->
                 <el-aside width="220px" class="aside-container">
                     <el-header class="aside-header">
                         <el-button type="primary" icon="el-icon-plus" @click="newChat" round>新对话</el-button>
@@ -26,8 +29,11 @@
                     </el-menu>
                 </el-aside>
 
+                <!-- 右侧主要内容区 --> 
                 <el-container>
+                    <!-- 聊天内容显示区 -->
                     <el-main class="main-content">
+                        <!-- 聊天内容显示区 -->
                         <div v-if="chatStarted" class="chat-container" ref="chatContainer">
                             <div v-for="(message, index) in chatMessages" :key="index" class="chat-message">
                                 <div v-if="message.role === 'user'" class="answer-message">
@@ -76,46 +82,18 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div v-else>
-
-                            <!-- <el-row type="flex" class="response-options">
-                                    <el-col :span="8" v-for="(card, index) in cards1" :key="index">
-                                        <el-card @click.native="sendMessage(card.message)">
-                                            <div slot="header" class="clearfix">
-                                                <span>{{ card.header }}</span>
-                                            </div>
-                                            <div class="text item">
-                                                {{ card.content }}
-                                            </div>
-                                            <div v-if="message.reference != null">
-                                                <el-divider></el-divider>
-                                               
-                                            </div>
-                                        </el-card>
-                                    </el-col>
-                                </el-row> -->
-                        </div>
                     </el-main>
-
+                    <!-- 聊天输入区 -->
                     <el-footer style="align-items: flex-start; display: flex;margin-bottom: 5px; padding: 0px;">
-                        <!-- Input area -->
-
-
                         <div class="input-wrapper">
-                            <!-- <el-select v-model="promptdefaultvalue" placeholder="默认" class="input-select1">
-                                    <el-option v-for="item in models" :key="item.value" :label="item.label"
-                                        :value="item.value" style="text-align: center;">
-                                        <span style="color: #8492a6; font-size: 13px">{{ item.value }}</span>
-                                    </el-option>
-                                </el-select> -->
-
+                            <!-- 输入框 -->
                             <div class="input-field-wrapper">
                                 <el-input v-model="newMessage" class="input-field" placeholder="请输入内容"
                                     @input="sendMessage" @keyup.enter.native="startChat">
                                 </el-input>
 
                             </div>
+                            <!-- 发送按钮 -->
                             <div class="input-button">
                                 <i class="el-icon-s-promotion" @click="startChat" style="margin-right: 5px;">
                                 </i>
@@ -143,6 +121,7 @@
             append-to-body
             align-center
         >
+            <!-- 图片预览区 -->
             <div class="image-container">
                 <img v-if="previewUrl !== '无图片'" :src="previewUrl" alt="预览图片" class="preview-image"/>
                 <div v-else class="no-image-placeholder">
@@ -150,14 +129,12 @@
                     <p style="display: inline-block;">无法加载图片</p>
                 </div>
             </div>
-            <!-- <iframe :src="previewUrl" style="width: 100%; height: 600px; border: none;"></iframe> -->
         </el-dialog>
     </el-container>
 </template>
 
 <script>
-import { chatkbStreamgpt, updateDialog, getkbhistory, getChatMsg, chatgpt, chatupload, gethistory, setclause_check, getChat, getChatchat, delete_dialogue, chatStreamgpt, getkbChat, getclauseChat, login, list_conversion } from "@/api/getData";
-import Index from "./chatHome/index.vue";
+import { chatkbStreamgpt, updateDialog, chatupload, getChat, delete_dialogue, getkbChat, login, list_conversion } from "@/api/getData";
 import Emoji from "@/components/Emoji.vue";
 import Nav from "@/components/Nav.vue";
 import commonMethodsMixin from '../../util/publicfun.js';
@@ -200,45 +177,6 @@ export default {
             isCollapse: false,
             // 输入框内容（用户问话内容）
             newMessage: '',
-            cards: [
-                {
-                    icon: 'el-icon-info',
-                    title: '标题一',
-                    subtitle: '副标题一'
-                },
-                {
-                    icon: 'el-icon-warning',
-                    title: '标题二',
-                    subtitle: '副标题二'
-                },
-                {
-                    icon: 'el-icon-error',
-                    title: '标题三',
-                    subtitle: '副标题三'
-                },
-                {
-                    icon: 'el-icon-success',
-                    title: '标题四',
-                    subtitle: '副标题四'
-                }
-            ],
-            cards1: [
-                // {
-                //     header: '翻译',
-                //     content: '帮我翻译苹果',
-                //     message: '帮我翻译苹果'
-                // },
-                // {
-                //     header: '摘要',
-                //     content: '帮我分析这个摘要',
-                //     message: '帮我分析这个摘要'
-                // },
-                // {
-                //     header: '试题生成',
-                //     content: '帮我生成一个试题',
-                //     message: '帮我生成一个试题'
-                // }
-            ],
             /**
              * 聊天消息（包括用户问话和回答）
              * [{
@@ -475,25 +413,7 @@ export default {
             this.activeIndex = index.toString();
             // 处理选中项逻辑
         },
-        updateNewMessage() {
-            this.newMessage = this.fileList.map(file => file.name).join(', '); // 示例中将文件名用逗号分隔
-        },
-        updateIsCollapse(value) {
-            this.isCollapse = value;
-            // this.updateIsCollapse(value);
-        },
-        toggleCollapse() {
-            this.isCollapse = !this.isCollapse; // 切换状态
-            this.dynamicMarginLeft = "150px"
-        },
-        handleOpen(key, keyPath) {
-            console.log(key, keyPath);
-        },
-        handleClose(key, keyPath) {
-            console.log(key, keyPath);
-        },
         goToMain() {
-            console.log("dddd")
             window.location.href = '#/ChatHome';
         },
         goToKnowledgeQA() {
