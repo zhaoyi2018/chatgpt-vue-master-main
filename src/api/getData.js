@@ -181,6 +181,15 @@ export const list_standard_clause = params => {
   })
 }
 
+// 删除比对历史
+export const delete_clause_his = params => {
+  return axios({
+    method: 'post',
+    url: `http://121.43.126.21:8001/clause/delete_his_clause`,
+    data: params,
+  })
+}
+
 export const compare_clause = async (params, handleChunk) => {
   let response = null;
   let code = 400;

@@ -52,7 +52,7 @@
                         </div>
                         
                         <!-- 步骤条显示区域 -->
-                        <el-main v-if="activeStep !== 4" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                        <el-main v-if="activeStep !== 4" style="display: flex; justify-content: center; align-items: center; height: 90%;">
                             <el-steps style="width: 800px" :active="activeStep" finish-status="success">
                                 <el-step title="选择标准条款" />
                                 <el-step title="上传待审核条款" />
@@ -62,8 +62,9 @@
                         </el-main>
                         
                         <!-- 比对结果表格 -->
-                        <el-main v-else style="padding: 20px 0px">
-                            <el-table :data="clauseTableData" style="width: 100%">
+                        <el-main v-else style="padding: 28px 0px 0px 20px;">
+                            <el-table :data="clauseTableData" style="width: max-content; min-width: 100%;"
+                            :height="'70vh'">
                                 <!-- 表格列定义 -->
                                 <el-table-column type="index" label="序号" width="50" align="center">
                                 </el-table-column>
@@ -91,7 +92,7 @@
 <script>
 // 导入所需的模块和组件
 import axios from 'axios';
-import { list_compare_history, compare_clause, upload_new_clause, list_standard_clause, clause_doc_stream_check, delete_dialogue, chatclauseStreamgpt, getclausehistory, getChatMsg, chatgpt, chatupload, gethistory, setclause_check, getChat, getChatchat, getclauseChat } from "@/api/getData";
+import { list_compare_history, delete_clause_his, compare_clause, upload_new_clause, list_standard_clause, clause_doc_stream_check, delete_dialogue, chatclauseStreamgpt, getclausehistory, getChatMsg, chatgpt, chatupload, gethistory, setclause_check, getChat, getChatchat, getclauseChat } from "@/api/getData";
 import Emoji from "@/components/Emoji.vue";
 import Nav from "@/components/Nav.vue";
 import commonMethodsMixin from '../../util/publicfun.js';
@@ -318,39 +319,18 @@ export default {
         };
     },
     
-    // 侦听器
-    watch: {
-        chatMessages: {
-            handler(newMessages) {
-                this.scrollToBottom();
-                console.log("newMessages", newMessages)
-                newMessages.forEach(message => {
-                    // 确保 message 对象具有 reference 属性并进行初始化
-                    if (!message.reference) {
-                        this.$set(message, 'reference', []);
-                    }
-                    if (!message.isHovered) {
-                        this.$set(message, 'isHovered', Array(message.reference.length).fill(false));
-                    }
-                });
-            },
-            immediate: true,
-            deep: true
-        }
-    },
-    
     // 方法定义
     methods: {
         // 历史聊天记录选择
         historyChat(question, index) {
             console.log("this.question", question)
-            this.chatStarted = true;
-            this.historyArrlist.forEach((item, i) => {
-                item.showDeleteButton = i === index;
-            });
-            this.newhistory = question
-            this.chatMessages = question.history
-            this.chat_id = question.dialogue_id
+            // this.chatStarted = true;
+            // this.historyArrlist.forEach((item, i) => {
+            //     item.showDeleteButton = i === index;
+            // });
+            // this.newhistory = question
+            // this.chatMessages = question.history
+            // this.chat_id = question.dialogue_id
         },
         
         // 滚动到底部
@@ -389,7 +369,8 @@ export default {
             console.log("deleteItem", this.historyArrlist[index])
 
             let params = {
-                dialogue_id: this.historyArrlist[index].dialogue_id,
+                his_id: this.historyArrlist[index].id,
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g"
             }
             this.$confirm('此操作将永久删除该对话, 是否继续?', '提示', {
                 confirmButtonText: '确定',
@@ -397,14 +378,19 @@ export default {
                 type: 'warning'
             }).then(() => {
 
-                delete_dialogue(params).then((res) => {
+                delete_clause_his(params).then((res) => {
                     this.$message({
                         type: 'success',
                         message: '删除成功!'
                     });
                     this.historyArrlist.splice(index, 1);
-                    this.newMessage = ""
-                    this.chatStarted = false
+                    if (this.activeIndex === index) {
+                        this.activeIndex = 0;
+                        this.clauseTableData = [];
+                        this.activeStep = 1;
+                    } else if (this.activeIndex > index) {
+                        this.activeIndex--;
+                    }
                     // this.$nextTick(() => {
                     //     document.activeElement.blur();
                     // });
@@ -428,6 +414,8 @@ export default {
         handleSelect(index) {
             this.activeIndex = Number(index);
             // 处理选中项逻辑
+            this.clauseTableData = this.historyArrlist[index].compare_result
+            this.activeStep = 4;
         },
         
         // 获取用户内容
