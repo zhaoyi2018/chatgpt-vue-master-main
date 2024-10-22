@@ -68,8 +68,11 @@
                         
                         <!-- 比对结果表格 -->
                         <el-main v-else style="padding: 28px 0px 0px 20px;">
-                            <el-table :data="clauseTableData" style="width: max-content; min-width: 100%;"
-                            :height="'70vh'">
+                            <el-table 
+                                ref="clauseTable"
+                                :data="clauseTableData" 
+                                style="width: max-content; min-width: 100%;"
+                                :height="'70vh'">
                                 <!-- 表格列定义 -->
                                 <el-table-column type="index" label="序号" width="50" align="center">
                                 </el-table-column>
@@ -445,6 +448,7 @@ export default {
             // 处理选中项逻辑
             this.clauseTableData = this.historyArrlist[index].compare_result
             this.activeStep = 4;
+            this.scrollTableToTop();
         },
         
         // 获取用户内容
@@ -782,10 +786,30 @@ export default {
         goToHome() {
             this.$router.push('/ChatHome');
         },
-        async handleChunk1(first, content, end) {
-            console.log("content", first, content)
-
-            // 初始化
+        // 滚动到顶部
+        scrollTableToTop() {
+            this.$nextTick(() => {
+                if (this.$refs.clauseTable) {
+                    const tableBody = this.$refs.clauseTable.$el.querySelector('.el-table__body-wrapper');
+                    if (tableBody) {
+                        tableBody.scrollTop = 0;
+                    }
+                }
+            });
+        },
+        // 滚动到底部
+        scrollTableToBottom() {
+            this.$nextTick(() => {
+                if (this.$refs.clauseTable) {
+                    const tableBody = this.$refs.clauseTable.$el.querySelector('.el-table__body-wrapper');
+                    if (tableBody) {
+                        tableBody.scrollTop = tableBody.scrollHeight;
+                    }
+                }
+            });
+        },
+        // 修改 handleChunk1 方法
+        handleChunk1(first, content, end) {
             if (first) {
                 this.activeStep = 4
                 this.clauseTableData = []
@@ -797,7 +821,15 @@ export default {
                 return
             }
             // 比对内容插入
-            this.clauseTableData.push(JSON.parse(content))
+            if (content) {
+                try {
+                    const jsonData = JSON.parse(content);
+                    this.clauseTableData.push(jsonData);
+                    this.scrollTableToBottom(); // 每次添加新数据后滚动到底部
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                }
+            }
         },
     },
     beforeRouteLeave(to, from, next) {
@@ -950,5 +982,6 @@ export default {
     }
   }
 </style>
+
 
 
