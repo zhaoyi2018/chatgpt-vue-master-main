@@ -137,7 +137,7 @@ export default {
         return {
             // 默认知识库id
             defaultKbId: ['89bef038-8132-11ef-9800-2cf05d3470d1', '969c9f22-8132-11ef-8470-2cf05d3470d1', 'cae9d17d-8092-11ef-a840-2cf05d3470d1'],
-            // 左侧激活对话索引(从0开始)
+            // 左侧激活对话索引(���0开始)
             activeIndex: null,
             // 对话id
             dialogue_id: "",
@@ -570,7 +570,8 @@ export default {
     /* Center the image */
     background-repeat: no-repeat;
     margin-bottom: 10px;
-    height: 50vh;
+    height: calc(100vh - 200px); /* 调整这个值以适应你的布局 */
+    overflow-y: hidden; /* 防止双重滚动条 */
     border-radius: 25px;
 }
 
@@ -587,9 +588,9 @@ export default {
 }
 
 .chat-container {
-    /* max-height: 600px; */
-    /* 根据需要设置 */
+    height: 100%;
     overflow-y: auto;
+    padding-right: 15px; /* 为滚动条留出空间 */
     margin-left: 20px;
     margin-right: 20px;
     /* width: 100%; */
@@ -603,21 +604,21 @@ export default {
 }
 
 .chat-container::-webkit-scrollbar-track {
-    background: transparent;
+    background: #f1f1f1;
     /* 滚动条轨道颜色 */
     border-radius: 10px;
     /* 轨道圆角 */
 }
 
 .chat-container::-webkit-scrollbar-thumb {
-    background: transparent;
+    background: #888;
     /* 滚动条拇指颜色 */
     border-radius: 10px;
     /* 拇指圆角 */
 }
 
 .chat-container::-webkit-scrollbar-thumb:hover {
-    background: transparent;
+    background: #555;
     /* 鼠标悬停时的颜色 */
 }
 
@@ -781,4 +782,6 @@ export default {
     overflow: auto;
 }
 </style>
+
+
 
