@@ -19,14 +19,14 @@
                         style="background-color: #f2fbff; justify-content: center;  height:70vh; margin-bottom:20px; overflow-x: hidden; ">
                         <el-menu-item v-for="(question, index) in historyArrlist" :key="index" :index="index.toString()"
                             class="menu-item-history" @click="historyChat(question, index)">
-                            <span slot="title" @mouseover="showDeleteButton(index)"
+                            <div slot="title" @mouseover="showDeleteButton(index)"
                                 @mouseleave="hideDeleteButton(index)" class="menu-item-wrapper">
-                                {{ question.name }}
-                                <!-- 删除按钮 -->
+                                <!-- {{ getUserContent(question.history) }} -->
+                                <div style="width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ question.name }}</div>
                                 <el-button v-show="question.showDeleteButton" type="text" icon="el-icon-close"
                                     @click.stop="deleteItem(index)"
                                     style="position: absolute; right: 5px; top: 55%; transform: translateY(-51%);"></el-button>
-                            </span>
+                            </div>
                         </el-menu-item>
                     </el-menu>
                 </el-aside>
@@ -112,8 +112,6 @@ export default {
     
     // 生命周期钩子 - 组件创建时
     created() {
-        console.log("created", this.$root.configs)
-        
         // 定义请求参数
         let params = {
             token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g"
@@ -233,6 +231,25 @@ export default {
             fileList: [],
             chat_id: "",
             newhistory: {},
+            /**
+             * 历史记录列表
+             * [{
+             *  id: 对话id
+             *  name: 对话名称
+             *  showDeleteButton: 是否显示删除按钮,
+             *  compare_result: 比对结果
+             * }]
+             * 
+             * compare_result： [{
+             *  id: 序号
+             *  institution: 制度要素
+             *  clause_number: 法规条款
+             *  original_text: 法规原文
+             *  related_chunks: 企业制度
+             *  review_result: 检查结果
+             *  advice: 修改建议
+             * }]
+            */
             historyArrlist: [],
             configs: [],
             promptall: [],
@@ -832,16 +849,6 @@ export default {
 
 .file-tag:hover i {
     display: inline-block;
-}
-
-.menu-item-history {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 5px;
-    border-radius: 10px;
-
-
 }
 
 .menu-item-history:hover {

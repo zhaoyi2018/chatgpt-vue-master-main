@@ -231,13 +231,7 @@ export const compare_clause = async (params, handleChunk) => {
 export const list_compare_history = params => {
   return axios({
     method: 'get',
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    },
     url: `http://121.43.126.21:8001/clause/list_compare_history?token=${params.token}`,
-    data: params,
-  }).then(res => {
-    return res
   })
 }
 
