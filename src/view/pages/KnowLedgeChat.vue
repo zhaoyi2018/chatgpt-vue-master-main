@@ -159,7 +159,8 @@ export default {
             fullContent: '',
             fullReference: '',
             previewDialogVisible: false,
-            previewUrl: "无图片"
+            previewUrl: "无图片",
+            abortController: null,
         };
     },
     created() {
@@ -372,6 +373,8 @@ export default {
         
         // 开始聊天
         async startChat() {
+            this.abortController = new AbortController();
+            
             if (this.newMessage.trim() !== '' && this.newMessage.trim().length > 0) {
                 if (this.dialogue_id === "") {
                     this.chatMessages = [];
@@ -384,7 +387,7 @@ export default {
                     query: this.newMessage,
                     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
                 };
-                chatkbStreamgpt(params, this.handleChunk, this.handleReferences);
+                chatkbStreamgpt(params, this.handleChunk, this.handleReferences, this.abortController.signal);
             } else {
                 this.$alert('请输入内容', '提示', {
                     confirmButtonText: '确定',
@@ -472,7 +475,18 @@ export default {
         goToHome() {
             this.$router.push('/ChatHome');
         }
-    }
+    },
+    beforeRouteLeave(to, from, next) {
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        next();
+    },
+    beforeDestroy() {
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+    },
 }
 </script>
 
@@ -812,6 +826,7 @@ export default {
     overflow: auto;
 }
 </style>
+
 
 
 

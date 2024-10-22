@@ -255,63 +255,70 @@ export const upload_new_clause = (file, handleChunk) => {
   
   };
 
-export const chatkbStreamgpt = async (params, handleChunk, handleReferences) => {
-  const response = await fetch(`http://121.43.126.21:8001/chat/knowledge`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json;charset=UTF-8',
-    },
-    body: JSON.stringify(params)
-  });
+export const chatkbStreamgpt = async (params, handleChunk, handleReferences, abortSignal) => {
+  const controller = new AbortController();
+  const signal = controller.signal;
 
-function processedText(text) {
-  return text
-    .replace(/\n/g, '\\n')  // 换行符
-    .replace(/\t/g, '\\t')  // 制表符
-    .replace(/\r/g, '\\r')  // 回车符
-    .replace(/\\/g, '\\\\') // 反斜杠
-    .replace(/\'/g, '\\\'') // 单引号
-    .replace(/\"/g, '\\"')  // 双引号
-    .replace(/\u2665/g, '\\u2665'); // Unicode字符
-}
+  // 如果传入了 abortSignal，监听它的 abort 事件
+  if (abortSignal) {
+    abortSignal.addEventListener('abort', () => controller.abort());
+  }
 
-  const readableStream = response.body;
-  if (readableStream) {
-    const reader = readableStream.getReader();
-    let first = true;
-    let newline = false;
-    
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) {
-        break;
-      }
-      const chunkValue = new TextDecoder().decode(value);
-      const lines = chunkValue.split('\n').filter(line => line.startsWith('data: '));
-      lines.forEach(line => {
-        let content = line.slice(6); // Remove 'data: ' prefix and trim whitespace
-        if (content.startsWith('{"reference"')) {
-          handleChunk(first, '', content, false);
-        } else if (content.startsWith('{"response"')) {
-          handleChunk(first, content, null, true);
-        } else {
-          if (content.length <= 1 && !newline) {
-            content = '\n'
-            newline = true;
-          } else {
-            newline = false;
-            content = content.length >= 2 ? content.substring(0, content.length - 1) : ''
-          }
-          handleChunk(first, content, null, false);
+  try {
+    const response = await fetch(`http://121.43.126.21:8001/chat/knowledge`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+      },
+      body: JSON.stringify(params),
+      signal: signal
+    });
+
+    const readableStream = response.body;
+    if (readableStream) {
+      const reader = readableStream.getReader();
+      let first = true;
+      let newline = false;
+      
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        // 检查是否已中断
+        if (signal.aborted) {
+          reader.releaseLock();
+          throw new DOMException('Aborted', 'AbortError');
         }
-        first = false;
-      });
+
+        const chunkValue = new TextDecoder().decode(value);
+        const lines = chunkValue.split('\n').filter(line => line.startsWith('data: '));
+        lines.forEach(line => {
+          let content = line.slice(6);
+          if (content.startsWith('{"reference"')) {
+            handleChunk(first, '', content, false);
+          } else if (content.startsWith('{"response"')) {
+            handleChunk(first, content, null, true);
+          } else {
+            if (content.length <= 1 && !newline) {
+              content = '\n'
+              newline = true;
+            } else {
+              newline = false;
+              content = content.length >= 2 ? content.substring(0, content.length - 1) : ''
+            }
+            handleChunk(first, content, null, false);
+          }
+          first = false;
+        });
+      }
+      reader.releaseLock();
     }
-    reader.releaseLock();
-    
-    // if (isReferences && references) {
-    //   handleReferences(references);
-    // }
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('Fetch aborted');
+    } else {
+      console.error('Fetch error:', error);
+    }
   }
 };
 
@@ -710,3 +717,4 @@ export const login = params => {
     return res
   })
 }
+
