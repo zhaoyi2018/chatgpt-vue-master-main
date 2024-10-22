@@ -332,6 +332,7 @@ export default {
             hasCompareDone: false, 
             // 步骤条【0：选择标准条款，1：上传待审核条款，2：新文档理解中，3：比对完成】
             activeStep: 1,
+            abortController: null,
         };
     },
     
@@ -520,13 +521,14 @@ export default {
                     // 睡眠1s
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     this.activeStep = 2
-                    // 比对
+                    // 创建新的 AbortController
+                    this.abortController = new AbortController();
                     const compareparams = {
                         token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
                         stand_id: this.value,
                         new_id: res.data.data.id
-                    }
-                    compare_clause(compareparams, this.handleChunk1)
+                    };
+                    compare_clause(compareparams, this.handleChunk1, this.abortController.signal);
                     // 睡眠1s
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     this.activeStep = 3
@@ -779,8 +781,38 @@ export default {
         // 添加新方法
         goToHome() {
             this.$router.push('/ChatHome');
+        },
+        async handleChunk1(first, content, end) {
+            console.log("content", first, content)
+
+            // 初始化
+            if (first) {
+                this.activeStep = 4
+                this.clauseTableData = []
+                this.hasCompareDone = true
+            }
+            // 结束
+            if (end) {
+                console.log("比对完成")
+                return
+            }
+            // 比对内容插入
+            this.clauseTableData.push(JSON.parse(content))
+        },
+    },
+    beforeRouteLeave(to, from, next) {
+        // 在路由离开前中断连接
+        if (this.abortController) {
+            this.abortController.abort();
         }
-    }
+        next();
+    },
+    beforeDestroy() {
+        // 组件销毁前中断连接
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+    },
 }
 </script>
 
@@ -918,3 +950,5 @@ export default {
     }
   }
 </style>
+
+

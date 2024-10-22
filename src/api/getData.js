@@ -184,52 +184,75 @@ export const delete_clause_his = params => {
   })
 }
 
-export const compare_clause = async (params, handleChunk) => {
+export const compare_clause = async (params, handleChunk, abortSignal) => {
   let response = null;
   let code = 400;
-  do {
-    // 睡眠1s
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    try {
-       // 获取比对内容
+  
+  const controller = new AbortController();
+  const signal = controller.signal;
+
+  // 如果传入了 abortSignal，监听它的 abort 事件
+  if (abortSignal) {
+    abortSignal.addEventListener('abort', () => controller.abort());
+  }
+
+  try {
+    do {
+      // 睡眠3s
+      await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(resolve, 3000);
+        signal.addEventListener('abort', () => {
+          clearTimeout(timeoutId);
+          reject(new DOMException('Aborted', 'AbortError'));
+        });
+      });
+
+      // 获取比对内容
       response = await fetch(`http://121.43.126.21:8001/clause/compare_clause`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
         },
-        body: JSON.stringify(params)
+        body: JSON.stringify(params),
+        signal: signal
       });
       code = response.status;
-    } catch (error) {
-      console.log("error", error)
-    }
-   
-  } while (code != 200);
+    } while (code != 200);
 
+    const readableStream = response.body;
+    if (readableStream) {
+      const reader = readableStream.getReader();
+      let first = true;
+      
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        // 检查是否已中断
+        if (signal.aborted) {
+          reader.releaseLock();
+          throw new DOMException('Aborted', 'AbortError');
+        }
 
-  const readableStream = response.body;
-  if (readableStream) {
-    const reader = readableStream.getReader();
-    let first = true;
-    
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) {
-        break;
+        const chunkValue = new TextDecoder().decode(value);
+        const lines = chunkValue.split('\n').filter(line => line.startsWith('data: '));
+        lines.forEach(line => {
+          const content = line.slice(6).trim(); // Remove 'data: ' prefix and trim whitespace
+          handleChunk(first, content, false);
+          first = false;
+        });
       }
-      const chunkValue = new TextDecoder().decode(value);
-      const lines = chunkValue.split('\n').filter(line => line.startsWith('data: '));
-      lines.forEach(line => {
-        const content = line.slice(6).trim(); // Remove 'data: ' prefix and trim whitespace
-        handleChunk(first, content, false);
-        first = false;
-      });
+      handleChunk(first, "", true);
+      reader.releaseLock();
     }
-    handleChunk(first, "", true);
-    reader.releaseLock();
-    
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('Fetch aborted');
+    } else {
+      console.error('Fetch error:', error);
+    }
   }
-}
+};
 
 export const list_compare_history = params => {
   return axios({
@@ -717,4 +740,6 @@ export const login = params => {
     return res
   })
 }
+
+
 
