@@ -25,13 +25,19 @@ export const getclauseChat = params => {
     data: params
   }).then(res => res.data)
 }
+
+/**
+ * 获取对话历史列表(dialog_type: 1:知识库问答, 2:隐患排查)
+ * @param {Object} params 
+ * @returns 
+*/
 export const getChat = params => {
   return axios({
     method: 'get',
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://39.106.94.192:8001/dialog/list_dialog?token=${params.access_token}`,
+    url: `http://39.106.94.192:8001/dialog/list_dialog?token=${params.access_token}&dialog_type=${params.dialog_type}`,
   
   }).then(res => res.data)
 }

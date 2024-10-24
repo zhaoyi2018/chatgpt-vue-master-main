@@ -186,14 +186,15 @@ export default {
         
         // 获取token
         async getToken() {
-            const res = await login();
-            return res.data.data.access_token;
+            // const res = await login();
+            // return res.data.data.access_token;
+            return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g"
         },
         
         // 获取对话历史列表
         async getChatHistory(token) {
             try {
-                const res = await getChat({ access_token: token });
+                const res = await getChat({ access_token: token, dialog_type: 1 });
                 this.dialogue_id = res.id;
                 this.chatStarted = true;
                 this.historyArrlist = res.data;

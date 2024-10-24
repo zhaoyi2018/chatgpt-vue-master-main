@@ -22,7 +22,7 @@
                                 @click="historyChat(question, index)">
                                 <span slot="title" @mouseover="showDeleteButton(index)"
                                     @mouseleave="hideDeleteButton(index)" class="menu-item-wrapper">
-                                    {{ getUserContent(question.history) }}
+                                    {{ question.name }}
                                     <el-button v-show="question.showDeleteButton" type="text" icon="el-icon-close"
                                         @click.stop="deleteItem(index)"
                                         style="position: absolute; right: 5px; top: 55%; transform: translateY(-51%);"></el-button>
@@ -166,7 +166,7 @@
 </template>
 
 <script>
-import { chatFileStreamgpt, chatImgStreamgpt, upload_img, upload_doc, chatkbStreamgpt, chatStreamgpt, getChatMsg, gethistory, getChat, chatgpt, getChatchat } from "@/api/getData";
+import { chatFileStreamgpt, chatImgStreamgpt, upload_doc, chatStreamgpt, gethistory, getChat, chatgpt, getChatchat } from "@/api/getData";
 import Emoji from "@/components/Emoji.vue";
 import Nav from "@/components/Nav.vue";
 import commonMethodsMixin from '../../util/publicfun.js';
@@ -288,9 +288,16 @@ export default {
         };
     },
     created() {
-        gethistory().then((res) => {
-            console.log("gethistoryres", res)
-            this.historyArrlist = res.data
+        const params = {
+            access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
+            dialog_type: 2
+        }
+        getChat(params).then((res) => {
+            if (res.code == 200) {
+                this.historyArrlist = res.data
+            } else {
+                this.$message.error('获取对话历史列表失败!');
+            }
         }).catch((err) => {
             console.log("errr", err)
         })
