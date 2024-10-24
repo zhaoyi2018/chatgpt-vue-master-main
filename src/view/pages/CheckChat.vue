@@ -942,6 +942,11 @@ export default {
     }
   }
 </style>
+<style>
+  .el-tooltip__popper {
+    max-width: 800px;
+  }
+</style>
 
 
 
