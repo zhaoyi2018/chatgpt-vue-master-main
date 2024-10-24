@@ -33,59 +33,34 @@
                     <el-container>
                         <el-main class="main-content">
                             <div v-if="chatStarted" class="chat-container" ref="chatContainer">
+                                <!-- 聊天消息循环 -->
                                 <div v-for="(message, index) in chatMessages" :key="index" class="chat-message">
+                                    <!-- 用户消息 -->
                                     <div v-if="message.role === 'user'" class="answer-message">
                                         <div class="card">
-                                            <i class="el-icon-user" style="line-height: 1.2;"> {{ message.content }}</i>
-                                            <div v-if="dialogImageUrl !== ''">
-                                                <el-image style="width: 200px; height: 200px" :src="dialogImageUrl"
-                                                    :fit="fit"></el-image>
-                                            </div>
-                                            <div v-if="dialogFileUrl !== ''">
-                                                <a> {{ dialogFileUrl }}</a>
-                                            </div>
+                                            <i class="el-icon-user" style="line-height: 1.5;"> {{ message.content }}</i>
                                         </div>
                                     </div>
+                                    <!-- AI助手消息 -->
                                     <div v-else-if="message.role === 'assistant'" class="answer-message">
-                                        <div class="card"  style=" background-color: #fff; float: left; color:#000">
-
+                                        <div class="card" style=" background-color: #fff; float: left; color:#000; ">
+                                            <!-- 询问的图片 -->
+                                            <div v-if="message.reference && message.reference.length > 0">
+                                                <i class="el-icon-paperclip" @click="previewImage(message.reference[0].image)" style="margin-top: 10px;margin-bottom: 10px;cursor: pointer;">询问图片</i>
+                                                <el-divider></el-divider>
+                                            </div>
+                                            <!-- 消息内容 -->
                                             <span v-if="index === chatMessages.length - 1">
-                                                <vue-markdown :source="message.content" :breaks="true"
-                                                    :typographer="true" :linkify="true"
-                                                    :highlight="false"></vue-markdown>
-
+                                                <vue-markdown :source="message.content" :breaks="true" :typographer="true"
+                                                    :linkify="true" :highlight="false"></vue-markdown>
                                             </span>
                                             <span v-else>
-                                                {{ message.content }}
+                                                <vue-markdown :source="message.content" :breaks="true" :typographer="true"
+                                                    :linkify="true" :highlight="false"></vue-markdown>
                                             </span>
-
-
-                                        </div>
-                                        <div class="floating-actions" v-show="floatactiveIndex == index">
-
-                                            <el-tooltip class="item" effect="dark" content="朗读"
-                                                placement="bottom-start">
-                                                <i class="el-icon-video-play" @click="readAloud"></i>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" effect="dark" content="复制" placement="bottom">
-                                                <i class="el-icon-copy-document" @click="copyContent"></i>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" effect="dark" content="点赞" placement="bottom-end">
-                                                <i class="el-icon-thumb" @click="likeMessage"></i>
-
-                                            </el-tooltip>
-                                            <el-tooltip class="item" effect="dark" content="点踩" placement="bottom-end">
-                                                <i class="el-icon-bottom" @click="dislikeMessage"></i>
-
-                                            </el-tooltip>
-                                            <el-tooltip class="item" effect="dark" content="重新生成"
-                                                placement="bottom-end">
-                                                <i class="el-icon-refresh-left" @click="regenerateMessage"></i>
-
-                                            </el-tooltip>
                                         </div>
                                     </div>
-                                </div>
+                                </div>  
                             </div>
 
 
@@ -161,7 +136,10 @@
 
             </el-main>
         </el-container>
-
+        <!-- 图片预览对话框 -->
+        <el-dialog :visible.sync="dialogVisible" title="图片预览" append-to-body>
+            <img :src="previewImageUrl" alt="预览图片" style="width: 100%;">
+        </el-dialog>
     </el-container>
 </template>
 
@@ -284,6 +262,8 @@ export default {
             fileType: "",
             dialogImageUrl: "",
             dialogFileUrl: "",
+            dialogVisible: false,
+            previewImageUrl: '',
 
         };
     },
@@ -320,6 +300,11 @@ export default {
     },
 
     methods: {
+        // 通过图片id, 返回图片url
+        getImageUrl(id) {
+            return `http://39.106.94.192:8001/image/${id}`;
+        },
+        // 获取用户内容
         getUserContent(history) {
             if (history.length > 0) {
                 const userEntry = history.find(entry => entry.role === 'user');
@@ -449,6 +434,10 @@ export default {
             // }
             this.dialogImageUrl = URL.createObjectURL(item.file);
             this.fileList.push(item.file);
+        },
+        // 截取内容
+        truncateText(text, maxLength) {
+            return text.length <= maxLength ? text : text.slice(0, maxLength) + '...';
         },
         //上传文件的事件
         uploadFile(item) {
@@ -736,7 +725,11 @@ export default {
         // 添加新方法
         goToHome() {
             this.$router.push('/ChatHome');
-        }
+        },
+        previewImage(img) {
+            this.previewImageUrl = this.getImageUrl(img);
+            this.dialogVisible = true;
+        },
     }
 }
 </script>
