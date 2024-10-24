@@ -327,7 +327,7 @@ export default {
         async performDelete(params, index) {
             try {
                 const res = await delete_dialogue(params);
-                if (res.data.code === 200) {
+                if (res.code === 200) {
                     this.$message({
                         type: 'success',
                         message: '删除成功!'

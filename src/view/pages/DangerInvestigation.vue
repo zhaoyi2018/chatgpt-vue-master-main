@@ -20,13 +20,13 @@
                             <el-menu-item v-for="(question, index) in historyArrlist" :key="index"
                                 :index="index.toString()" class="menu-item-history"
                                 @click="historyChat(question, index)">
-                                <span slot="title" @mouseover="showDeleteButton(index)"
+                                <div slot="title" @mouseover="showDeleteButton(index)"
                                     @mouseleave="hideDeleteButton(index)" class="menu-item-wrapper">
-                                    {{ question.name }}
+                                    <div style="width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ question.name }}</div>
                                     <el-button v-show="question.showDeleteButton" type="text" icon="el-icon-close"
                                         @click.stop="deleteItem(index)"
                                         style="position: absolute; right: 5px; top: 55%; transform: translateY(-51%);"></el-button>
-                                </span>
+                                </div>
                             </el-menu-item>
                         </el-menu>
                     </el-aside>
@@ -166,7 +166,7 @@
 </template>
 
 <script>
-import { chatFileStreamgpt, chatImgStreamgpt, upload_doc, chatStreamgpt, gethistory, getChat, chatgpt, getChatchat } from "@/api/getData";
+import { chatFileStreamgpt, chatImgStreamgpt, upload_doc, chatStreamgpt, delete_dialogue, getChat, chatgpt, getChatchat } from "@/api/getData";
 import Emoji from "@/components/Emoji.vue";
 import Nav from "@/components/Nav.vue";
 import commonMethodsMixin from '../../util/publicfun.js';
@@ -496,15 +496,41 @@ export default {
             this.chatMessages = question.history
             this.chat_id = question.dialogue_id
         },
+        // 显示删除按钮
         showDeleteButton(index) {
-            console.log("indexindex", this.historyArrlist[index])
-            this.historyArrlist[index].showDeleteButton = true;
+            this.$set(this.historyArrlist[index], 'showDeleteButton', true);
         },
+        
+        // 隐藏删除按钮
         hideDeleteButton(index) {
-            this.historyArrlist[index].showDeleteButton = false
+            this.$set(this.historyArrlist[index], 'showDeleteButton', false);
         },
+        
+        // 删除对话项
         deleteItem(index) {
-            this.historyArrlist.splice(index, 1);
+            this.$confirm('此操作将永久删除该对话, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                // 调用删除对话接口
+                const params = {
+                    dialog_id: this.historyArrlist[index].id,
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
+                };
+                delete_dialogue(params).then((res) => {
+                    if (res.code == 200) {
+                        this.historyArrlist.splice(index, 1);
+                    } else {
+                        this.$message.error('删除对话失败!');
+                    }
+                })
+            }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });
+            });
         },
         guid() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {

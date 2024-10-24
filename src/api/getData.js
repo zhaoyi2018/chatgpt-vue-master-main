@@ -146,6 +146,8 @@ export const delete_dialogue = params => {
     method: 'post',
     url: `http://39.106.94.192:8001/dialog/delete_dialog`,
     data: params,
+  }).then(res => {
+    return res
   })
 }
 // 获取对话下所有会话
