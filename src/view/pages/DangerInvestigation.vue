@@ -19,7 +19,7 @@
                             style="background-color: #f2fbff; justify-content: center;  height:70vh; margin-bottom:20px; overflow-x: hidden; ">
                             <el-menu-item v-for="(question, index) in historyArrlist" :key="index"
                                 :index="index.toString()" class="menu-item-history"
-                                @click="historyChat(question, index)">
+                                @click="listConversion(index)">
                                 <div slot="title" @mouseover="showDeleteButton(index)"
                                     @mouseleave="hideDeleteButton(index)" class="menu-item-wrapper">
                                     <div style="width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ question.name }}</div>
@@ -166,7 +166,7 @@
 </template>
 
 <script>
-import { chatFileStreamgpt, chatImgStreamgpt, upload_doc, chatStreamgpt, delete_dialogue, getChat, chatgpt, getChatchat } from "@/api/getData";
+import { chatFileStreamgpt, chatImgStreamgpt, upload_doc, chatStreamgpt, delete_dialogue, getChat, chatgpt, list_conversion } from "@/api/getData";
 import Emoji from "@/components/Emoji.vue";
 import Nav from "@/components/Nav.vue";
 import commonMethodsMixin from '../../util/publicfun.js';
@@ -486,15 +486,25 @@ export default {
         handlePreview() {
 
         },
-        historyChat(question) {
-            console.log("this.question", question)
-            this.dialogImageUrl = ""
-            this.dialogFileUrl = ""
-            this.chatStarted = true;
-            question.showDeleteButton = true
-            this.newhistory = question
-            this.chatMessages = question.history
-            this.chat_id = question.dialogue_id
+        // 获取对话下所有会话
+        async listConversion(index) {
+            try {
+                const params = {
+                    id: this.historyArrlist[index].id,
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g"
+                };
+                const res = await list_conversion(params);
+                this.dialogue_id = this.historyArrlist[index].id;
+                this.chatStarted = true;
+                this.chatMessages = [];
+                console.log("res", res)
+                res.data.data.forEach(item => {
+                    this.chatMessages.push({ content: item.question, role: 'user' });
+                    this.chatMessages.push({ content: item.answer, role: 'assistant', reference: item.reference });
+                });
+            } catch (err) {
+                console.error("获取对话内容失败", err);
+            }
         },
         // 显示删除按钮
         showDeleteButton(index) {
