@@ -45,8 +45,14 @@
                                     <div v-else-if="message.role === 'assistant'" class="answer-message">
                                         <div class="card" style=" background-color: #fff; float: left; color:#000; ">
                                             <!-- 询问的图片 -->
-                                            <div v-if="message.reference && message.reference.length > 0">
-                                                <i class="el-icon-paperclip" @click="previewImage(message.reference[0].image)" style="margin-top: 10px;margin-bottom: 10px;cursor: pointer;">询问图片</i>
+                                            <div v-if="message.reference && message.reference.length > 0" class="image-container">
+                                                <i class="el-icon-paperclip" style="margin-bottom: 10px;">询问图片</i>
+                                                <div class="image-wrapper">
+                                                    <img :src="getImageUrl(message.reference[0].image)" 
+                                                         alt="缩略图" 
+                                                         class="thumbnail" 
+                                                         @click="previewImage(message.reference[0].image)">
+                                                </div>
                                                 <el-divider></el-divider>
                                             </div>
                                             <!-- 消息内容 -->
@@ -136,9 +142,22 @@
 
             </el-main>
         </el-container>
+
         <!-- 图片预览对话框 -->
-        <el-dialog :visible.sync="dialogVisible" title="图片预览" append-to-body>
-            <img :src="previewImageUrl" alt="预览图片" style="width: 100%;">
+        <el-dialog
+            :visible.sync="dialogVisible"
+            title="图片预览"
+            width="50%"
+            append-to-body
+            align-center
+        >
+            <div class="preview-image-container">
+                <img v-if="previewImageUrl !== '无图片'" :src="previewImageUrl" alt="预览图片" class="preview-image"/>
+                <div v-else class="no-image-placeholder">
+                    <i class="el-icon-picture-outline"></i>
+                    <p>无法加载图片</p>
+                </div>
+            </div>
         </el-dialog>
     </el-container>
 </template>
@@ -727,7 +746,7 @@ export default {
             this.$router.push('/ChatHome');
         },
         previewImage(img) {
-            this.previewImageUrl = this.getImageUrl(img);
+            this.previewImageUrl = this.getImageUrl(img) || '无图片';
             this.dialogVisible = true;
         },
     }
@@ -819,3 +838,102 @@ export default {
     /* 圆角 */
 }
 </style>
+<style scoped>
+/* 添加新的样式 */
+:deep(.preview-dialog .el-dialog__body) {
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 80vh;
+}
+
+.image-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+:deep(.el-dialog){
+    display: flex;
+    flex-direction: column;
+    margin:0 !important;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    max-height:calc(100% - 30px);
+    max-width:calc(100% - 30px);
+}
+:deep(.el-dialog .el-dialog__body){
+    flex:1;
+    overflow: auto;
+}
+
+.image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.image-wrapper {
+    width: 200px;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.thumbnail {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.thumbnail:hover {
+    transform: scale(1.05);
+}
+
+.preview-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+}
+
+.no-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #909399;
+}
+
+.no-image-placeholder i {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+</style>
+
