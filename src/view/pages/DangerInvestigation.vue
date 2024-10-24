@@ -90,8 +90,7 @@
 
 
                             <div v-else>
-                            
-                                <el-row type="flex" class="response-options">
+                                <!-- <el-row type="flex" class="response-options">
                                     <el-col :span="8" v-for="(card, index) in cards1" :key="index">
                                         <el-card @click.native="sendMessage(card.message)" style="height: 250px; margin-left: 20px">
                                             <div slot="header" class="clearfix">
@@ -102,12 +101,12 @@
                                             </div>
                                         </el-card>
                                     </el-col>
-                                </el-row>
+                                </el-row> -->
                             </div>
                         </el-main>
                         <el-footer style="align-items: flex-start; display: flex;padding: 0px;">
                             <div class="input-wrapper">
-                                <el-dropdown class="input-select1">
+                                <!-- <el-dropdown class="input-select1">
                                     <span class="el-dropdown-link">
                                         {{ promptdefaultvalue }}<i class="el-icon-arrow-down el-icon--right"></i>
                                     </span>
@@ -128,7 +127,7 @@
                                             {{ item.value }}
                                         </el-dropdown-item>
                                     </el-dropdown-menu>
-                                </el-dropdown>
+                                </el-dropdown> -->
                                 <div class="input-field-wrapper">
                                     <el-input v-model="newMessage" class="input-field" placeholder="请输入内容"
                                     @keyup.enter.native="startChat" >
@@ -146,10 +145,10 @@
                                         :show-file-list="false" accept="image/*">
                                         <i class="el-icon-picture-outline-round" style="margin-right: 5px;"></i>
                                     </el-upload>
-                                    <el-upload class="upload-icon" action :http-request="uploadFile" ref="upload"
+                                    <!-- <el-upload class="upload-icon" action :http-request="uploadFile" ref="upload"
                                         :show-file-list="false">
                                         <i class="el-icon-paperclip" style="margin-right: 5px;"></i>
-                                    </el-upload>
+                                    </el-upload> -->
                                     <i class="el-icon-s-promotion" @click="startChat" style="margin-right: 5px;">
                                     </i>
                                 </div>
