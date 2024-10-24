@@ -141,8 +141,8 @@
                                 file.name }}</span>
                                         <i class="el-icon-close" @click="removeFile(index)"></i>
                                     </div>
-                                    <el-upload class="upload-icon" action :http-request="uploadImg" ref="upload"
-                                        :show-file-list="false" accept="image/*">
+                                    <el-upload v-if="fileList.length < 1" class="upload-icon" action :http-request="uploadImg" ref="upload"
+                                        :show-file-list="false" accept="image/*" :limit="1">
                                         <i class="el-icon-picture-outline-round" style="margin-right: 5px;"></i>
                                     </el-upload>
                                     <!-- <el-upload class="upload-icon" action :http-request="uploadFile" ref="upload"
@@ -283,7 +283,7 @@ export default {
             prompts: [],
             fileType: "",
             dialogImageUrl: "",
-            dialogFileUrl: ""
+            dialogFileUrl: "",
 
         };
     },
@@ -434,22 +434,14 @@ export default {
             }); return
         },
         uploadImg(item) {
-            // this.$showMessage('文件上传中........')
-            //上传文件的需要formdata类型;所以要转
-            var FormDatas = new FormData()
-            FormDatas.append('file', item.file);
+            // var FormDatas = new FormData()
+            // FormDatas.append('file', item.file);
 
-            let params = {
-                file: FormDatas
-            }
+            // let params = {
+            //     file: FormDatas
+            // }
             this.dialogImageUrl = URL.createObjectURL(item.file);
-            console.log("this.dialogImageUrl", item)
-
             this.fileList.push(item.file);
-            upload_img(params).then(res => {
-                console.log("upload_imgres", res.data.content)
-                this.fileType = "img"
-            })
         },
         //上传文件的事件
         uploadFile(item) {
@@ -633,45 +625,8 @@ export default {
 
         },
         newChat() {
-            this.dialogImageUrl = ""
-            this.dialogFileUrl = ""
-            if (this.chatMessages.length == 0) {
-                //说明没有新建
-                getChat().then((res) => {
-                    //
-                    console.log("getChat", res)
-
-                    this.chat_id = res.dialogue_id
-                    this.chatStarted = true;
-                    this.chatMessages = res.history
-                }).catch((err) => {
-                    console.log("err")
-                })
-            }
-            else {
-                //保存在历史
-                this.newhistory.showDeleteButton = false
-                let newhistory = this.newhistory
-                var isDuplicate = this.historyArrlist.some(function (item) {
-                    return item.dialogue_id === newhistory.dialogue_id;
-                });
-
-                // 如果不存在相同 dialogue_id 的记录，则将新记录添加到历史记录数组中
-                if (!isDuplicate) {
-                    this.historyArrlist.unshift(newhistory);
-                }
-                else {
-                    getChat().then((res) => {
-                        console.log("getChat", res)
-                        this.chat_id = res.dialogue_id
-                        this.chatStarted = true;
-                        this.chatMessages = res.history
-                    }).catch((err) => {
-                        console.log("err")
-                    })
-                }
-                console.log(this.historyArrlist, "this.historyArrlist")
-            }
+            // 当前消息栏清空
+            
         },
         toggleCollapse() {
             this.isCollapse = !this.isCollapse; // 切换状态
