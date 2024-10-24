@@ -163,7 +163,7 @@
 </template>
 
 <script>
-import { chatFileStreamgpt, chatImgStreamgpt, upload_doc, chatStreamgpt, delete_dialogue, getChat, chatgpt, list_conversion } from "@/api/getData";
+import { chatFileStreamgpt, chatImgStreamgpt, upload_doc, chatStreamgpt, delete_dialogue, getChat, chatgpt, list_conversion, chatImage } from "@/api/getData";
 import Emoji from "@/components/Emoji.vue";
 import Nav from "@/components/Nav.vue";
 import commonMethodsMixin from '../../util/publicfun.js';
@@ -283,7 +283,7 @@ export default {
             dialogFileUrl: "",
             dialogVisible: false,
             previewImageUrl: '',
-
+            abortController: null,
         };
     },
     created() {
@@ -317,7 +317,17 @@ export default {
             answerMessageElement.removeEventListener('mouseleave', this.hideActionButtons);
         }
     },
-
+    beforeRouteLeave(to, from, next) {
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        next();
+    },
+    beforeDestroy() {
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+    },
     methods: {
         // 通过图片id, 返回图片url
         getImageUrl(id) {
@@ -559,82 +569,18 @@ export default {
         }
         ,
         startChat() {
-            console.log("this.chat_id", this.chat_id)
-
-            if (this.newMessage.trim() !== '' || this.newMessage.trim().length > 0) {
+            this.abortController = new AbortController();
+            if (this.newMessage.trim() !== '' && this.newMessage.trim().length > 0 && this.fileList.length > 0) {
                 this.chatMessages.push({ content: this.newMessage, role: 'user' });
-                if (this.chat_id == "") {
-                    this.chat_id = this.guid()
-                }
-                console.log("chat_id", this.chat_id)
-                let config = {
-                    "model": this.modeldefaultvalue,
-                    "prompt": this.promptdefaultvalue,
-                    "knowledge": "default",
-                    "LLM_config": "default"
-                }
 
-                let params = {
-                    dialogue_id: this.chat_id,
-                    query: this.newMessage,
-                    config: JSON.stringify(config)
-                    // history: JSON.stringify([{role:"hh",content:"xx"},{role:"hh",content:"xx"}])
-                    // {role:"hh",content:"xx"}
-                    // ,
-                }
-                console.log("params", params, this.promptdefaultvalue)
-                if (this.fileType !== "") {
-                    if (this.fileType == "img") {
-                        chatImgStreamgpt(params, this.handleChunk, this.handleReferences)
-                    }
-                    else {
-                        let config1 = {
-                            "model": "default",
-                            "prompt": "default",
-                            "knowledge": "new",
-                            "LLM_config": "default"
-                        }
-
-                        let params1 = {
-                            dialogue_id: this.chat_id,
-                            query: this.newMessage,
-                            config: JSON.stringify(config1)
-                            // history: JSON.stringify([{role:"hh",content:"xx"},{role:"hh",content:"xx"}])
-                            // {role:"hh",content:"xx"}
-                            // ,
-                        }
-                        chatFileStreamgpt(params1, this.handleChunk, this.handleReferences)
-                    }
-                }
-                else {
-                    if (this.modeldefaultvalue == "spark") {
-                        chatgpt(params).then((res) => {
-                            this.chatMessages.push({ content: res.data.response, role: 'assistant', reference: res.data.reference });
-                            this.newhistory = {
-                                dialogue_id: this.chat_id, history: this.chatMessages
-                            }
-                            const existingIndex = this.historyArrlist.findIndex(item => item.dialogue_id === this.chat_id);
-
-                            if (existingIndex === -1) {
-                                this.historyArrlist.unshift(this.newhistory);
-                            } else {
-                                console.log("Duplicate dialogue_id found, not adding.");
-                            }
-                            this.newMessage = '';
-                            this.chatStarted = true;
-
-
-                        });
-                    }
-                    else {
-                        chatStreamgpt(params, this.handleChunk, this.handleReferences);
-
-                    }
-                }
-
-
-            }
-            else {
+                const formData = new FormData();
+                formData.append('image_file', this.fileList[0]);
+                formData.append('query', this.newMessage);
+                formData.append('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g');
+                
+                chatImgStreamgpt(formData, this.handleChunk, this.handleReferences, this.abortController.signal)
+                
+            } else {
                 this.$alert('请输入内容', '提示', {
                     confirmButtonText: '确定',
                     callback: action => {
@@ -642,28 +588,22 @@ export default {
                 });
             }
         },
-        handleChunk(first, content) {
+        // 处理聊天响应块
+        handleChunk(first, content, reference, end) {
             if (first) {
-                this.chatMessages.push({ content: '', role: 'assistant', reference: [] });
+                this.chatMessages.push({ content: '', role: 'assistant', reference: JSON.parse(reference).reference });
+                this.newMessage = '';
+                this.fileList = []
             }
-
             const lastMessageIndex = this.chatMessages.length - 1;
-            this.chatMessages[lastMessageIndex].content += content;
-
-            this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
-            this.newhistory = {
-                dialogue_id: this.chat_id, history: this.chatMessages
-            }
-            const existingIndex = this.historyArrlist.findIndex(item => item.dialogue_id === this.chat_id);
-
-            if (existingIndex === -1) {
-                this.historyArrlist.unshift(this.newhistory);
+            if (!end) {
+                this.chatMessages[lastMessageIndex].content += content;
+                this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
             } else {
-                console.log("Duplicate dialogue_id found, not adding.");
-            }
-            this.newMessage = '';
-            this.chatStarted = true;
-            this.fileList = []
+                // this.chatMessages[lastMessageIndex].content = JSON.parse(content).response;
+                // this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
+                this.chatStarted = true;
+            } 
         },
         handleReferences(reference) {
             console.log("reference", JSON.parse(reference).reference)

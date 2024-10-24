@@ -677,48 +677,70 @@ export const upload_doc = params => {
     return res
   })
 }
-export const chatImgStreamgpt = async (params, handleChunk, handleReferences) => {
-  const response = await fetch(`http://39.106.94.192:8001/chat/${params.dialogue_id}/stream_img_chat?query=${params.query}&config=${params.config}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json;charset=UTF-8',
-    },
-    body: JSON.stringify(params)
-  });
+export const chatImgStreamgpt = async (data, handleChunk, handleReferences, abortSignal) => {
+  const controller = new AbortController();
+  const signal = controller.signal;
 
-  const readableStream = response.body;
-  if (readableStream) {
-    const reader = readableStream.getReader();
-    let first = true;
-    let isReferences = false;
-    let references = '';
-    
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) {
-        break;
-      }
-      const chunkValue = new TextDecoder().decode(value);
-      const lines = chunkValue.split('\n').filter(line => line.startsWith('data: '));
-      lines.forEach(line => {
-        const content = line.slice(6).trim(); // Remove 'data: ' prefix and trim whitespace
-        if (isReferences) {
-          references = content;
-        } else if (content.startsWith('{"response"')) {
-          
-          isReferences = true;
-          references = content;
-        } else {
-          handleChunk(first, content);
+  // 如果传入了 abortSignal，监听它的 abort 事件
+  if (abortSignal) {
+    abortSignal.addEventListener('abort', () => controller.abort());
+  }
+
+  try {
+    const response = await fetch(`http://39.106.94.192:8001/image/image_chat`, {
+      method: 'POST',
+      // headers: {
+      //   'Content-Type': 'multipart/form-data',
+      // },
+      body: data,
+      signal: signal
+    });
+
+    const readableStream = response.body;
+    if (readableStream) {
+      const reader = readableStream.getReader();
+      let first = true;
+      let newline = false;
+      
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        // 检查是否已中断
+        if (signal.aborted) {
+          reader.releaseLock();
+          throw new DOMException('Aborted', 'AbortError');
         }
-        first = false;
-      });
+
+        const chunkValue = new TextDecoder().decode(value);
+        const lines = chunkValue.split('\n').filter(line => line.startsWith('data: '));
+        lines.forEach(line => {
+          let content = line.slice(6);
+          console.log('content',content)
+          if (content.startsWith('{"reference"')) {
+            handleChunk(first, '', content, false);
+          } else if (content.startsWith('{"response"')) {
+            handleChunk(first, content, null, true);
+          } else {
+            if (content.length <= 1 && !newline) {
+              content = '\n'
+              newline = true;
+            } else {
+              newline = false;
+              content = content.length >= 2 ? content.substring(0, content.length - 1) : ''
+            }
+            handleChunk(first, content, null, false);
+          }
+          first = false;
+        });
+        }
+      reader.releaseLock();
     }
-    
-    reader.releaseLock();
-    
-    if (isReferences && references) {
-      handleReferences(references);
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('Fetch aborted');
+    } else {
+      console.error('Fetch error:', error);
     }
   }
 };
