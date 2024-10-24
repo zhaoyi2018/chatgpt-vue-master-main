@@ -16,9 +16,9 @@
           <i class="el-icon-menu"></i>
           <span slot="title">知识库问答</span>
         </el-menu-item>
-        <el-menu-item index="2" @click.native="goToFreeChat">
+        <el-menu-item index="2" @click.native="goToDangerInvestigation">
           <i class="el-icon-chat-dot-square"></i>
-          <span slot="title">自由对话</span>
+          <span slot="title">隐患排查</span>
         </el-menu-item>
         <el-menu-item index="3" @click.native="goToCheckChat">
           <i class="el-icon-document"></i>

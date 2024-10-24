@@ -8,7 +8,7 @@ import MobileChat from "@/view/pages/chatHome/MobileChat.vue";
 import Home from "@/view/home.vue";
 import CheckChat from "../view/pages/CheckChat.vue";
 import KnowLedgeChat from "../view/pages/KnowLedgeChat.vue";
-import FreeChat from "../view/pages/FreeChat.vue";
+import DangerInvestigation from "../view/pages/DangerInvestigation.vue";
 import TitleSetChat from "../view/pages/TitleSetChat.vue";
 import Prompt from "../view/pages/Prompt.vue";
 import SelectModel from "../view/pages/SelectModel.vue";
@@ -60,9 +60,9 @@ export default new VueRouter({
       component: KnowLedgeChat,
     },
     {
-      path: "/FreeChat",
-      name: "FreeChat",
-      component: FreeChat,
+      path: "/DangerInvestigation",
+      name: "DangerInvestigation",
+      component: DangerInvestigation,
     },
     {
       path: "/TitleSetChat",

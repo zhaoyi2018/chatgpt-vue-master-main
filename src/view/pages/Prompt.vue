@@ -181,8 +181,8 @@ export default {
         goToKnowledgeQA() {
             window.location.href = '#/KnowLedgeChat';
         },
-        goToFreeChat() {
-            window.location.href = '#/FreeChat';
+        goToDangerInvestigation() {
+            window.location.href = '#/DangerInvestigation';
         },
         goToCheckChat() {
             window.location.href = '#/CheckChat';

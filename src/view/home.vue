@@ -28,11 +28,11 @@
           </el-col>
           <!-- 居中 -->
           <el-col :span="8">
-            <el-card @click.native="goToFreeChat">
+            <el-card @click.native="goToDangerInvestigation">
               <el-row class="title-row">
                 <el-col :span="22">
                   <i class="el-icon-s-promotion"></i>
-                  <span class="main-title">自由对话</span>
+                  <span class="main-title">隐患排查</span>
                 </el-col>
                 <el-col :span="22">
                   <span class="sub-title">LLM原生对话</span>
@@ -206,8 +206,8 @@ import StreamText from '@/components/StreamText.vue';
       goToKnowledgeQA(){
         window.location.href = '#/KnowLedgeChat';
       },
-      goToFreeChat(){
-        window.location.href = '#/FreeChat';
+      goToDangerInvestigation(){
+        window.location.href = '#/DangerInvestigation';
       },
       goToCheckChat(){
         window.location.href = '#/CheckChat';

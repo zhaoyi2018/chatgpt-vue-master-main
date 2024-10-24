@@ -90,7 +90,7 @@ export default {
 
 ## 简介
 
-Yoka 是一款基于多个大语言模型、RAG 架构和 Agent 技术实现的危险货物专家 AI 助手。它旨在帮助企业实现安全生产和知识管理,提供四个主要场景:知识库问答、自由对话、条款检查和题目生成。
+Yoka 是一款基于多个大语言模型、RAG 架构和 Agent 技术实现的危险货物专家 AI 助手。它旨在帮助企业实现安全生产和知识管理,提供四个主要场景:知识库问答、隐患排查、条款检查和题目生成。
 
 ## 主要功能
 
@@ -98,9 +98,9 @@ Yoka 是一款基于多个大语言模型、RAG 架构和 Agent 技术实现的�
 
 基于本地知识库和 RAG 架构,Yoka 可以回答企业业务知识、法律法规等相关问题。它利用自然语言处理技术从知识库中检索相关信息,并生成准确的答复。
 
-### 2. 自由对话
+### 2. 隐患排查
 
-Yoka 充分发挥了大语言模型的原生能力,可以根据用户选择的不同模型和 Prompt 模板,解决个性化问题。用户可以与 Yoka 进行自由对话,探讨各种主题。
+Yoka 基于本地知识库,可以对隐患进行排查,并给出整改建议。
 
 ### 3. 条款检查
 
@@ -210,8 +210,8 @@ Yoka 提供了丰富的知识引擎配置和大语言模型配置,满足用户�
     goToKnowledgeQA() {
       window.location.href = '#/KnowLedgeChat';
     },
-    goToFreeChat() {
-      window.location.href = '#/FreeChat';
+    goToDangerInvestigation() {
+      window.location.href = '#/DangerInvestigation';
     },
     goToCheckChat() {
       window.location.href = '#/CheckChat';
