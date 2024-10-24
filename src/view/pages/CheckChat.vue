@@ -39,58 +39,74 @@
                 <!-- 右侧主要内容区 -->
                 <el-container>
                     <el-main>
-                        <!-- 顶部选择和上传区域 -->
-                        <div ref="chatContainer" style="display: flex; justify-content: flex-start">
-                            <!-- 选择标准条款下拉框 -->
-                            <el-select placeholder="请选择标准条款" v-model="value">
-                                <el-option v-for="item in options" :key="item.value" :label="item.label"
-                                    :value="item.value">
-                                </el-option>
-                            </el-select>
-                            
-                            <!-- 上传新条款按钮 -->
-                            <el-upload class="upload-demo" action :http-request="uploadFile" :disabled="value == ''" ref="upload"
-                                :show-file-list="false" style="margin-left: 10px;">
-                                <i class="el-icon-upload"></i>
-                                <div class="el-upload__text">上传新条款</div>
-                            </el-upload>
-                        </div>
+                        <!-- 逻辑1: 新建条款下的步骤显示 -->
+                        <template v-if="activeStep !== 4">
+                            <el-main style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 90%;">
+                                <!-- 模块1: 步骤条 -->
+                                <el-steps style="width: 800px; margin-bottom: 40px;" :active="activeStep" finish-status="success">
+                                    <el-step title="选择标准条款" />
+                                    <el-step title="上传待审核条款" />
+                                    <el-step title="新文档分析中" />
+                                    <el-step title="比对完成" />
+                                </el-steps>
+                                
+                                <!-- 模块2: 根据步骤显示不同内容 -->
+                                <div style="width: 800px;">
+                                    <!-- 步骤1: 选择标准条款 -->
+                                    <div v-if="activeStep === 1" style="display: flex; align-items: center; justify-content: space-between;">
+                                        <el-select placeholder="请选择标准条款" v-model="value" style="width: calc(100% - 110px); margin-right: 10px;">
+                                            <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
+                                            </el-option>
+                                        </el-select>
+                                        <!-- 下一步按钮 -->
+                                        <el-button type="primary" icon="el-icon-arrow-right" @click="activeStep += 1" style="width: 100px;">下一步</el-button>
+                                    </div>
+                                    
+                                    <!-- 步骤2: 上传待审核条款 -->
+                                    <div v-else-if="activeStep === 2" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                                        <el-upload class="upload-demo" action :http-request="uploadFile" :disabled="value == ''" ref="upload"
+                                            :show-file-list="false" style="width: 300px;"> <!-- 设置一个固定宽度 -->
+                                            <el-button type="primary" icon="el-icon-upload" style="width: 100%;">上传新条款</el-button>
+                                        </el-upload>
+                                    </div>
+                                    
+                                    <!-- 步骤3: 新文档分析中 -->
+                                    <div v-else-if="activeStep === 3">
+                                        <el-progress :percentage="10" :color="customColors"></el-progress>
+                                        <p>新文档分析中，请稍候...</p>
+                                    </div>
+                                </div>
+                            </el-main>
+                        </template>
                         
-                        <!-- 步骤条显示区域 -->
-                        <el-main v-if="activeStep !== 4" style="display: flex; justify-content: center; align-items: center; height: 90%;">
-                            <el-steps style="width: 800px" :active="activeStep" finish-status="success">
-                                <el-step title="选择标准条款" />
-                                <el-step title="上传待审核条款" />
-                                <el-step title="新文档分析中" />
-                                <el-step title="比对完成" />
-                            </el-steps>
-                        </el-main>
-                        
-                        <!-- 比对结果表格 -->
-                        <el-main v-else style="padding: 28px 0px 0px 20px;">
-                            <el-table 
-                                ref="clauseTable"
-                                :data="clauseTableData" 
-                                style="width: 100%;"
-                                :height="'70vh'"
-                                show-overflow-tooltip>
-                                <!-- 表格列定义 -->
-                                <el-table-column type="index" label="序号" min-width="5%" align="center">
-                                </el-table-column>
-                                <el-table-column prop="institution" label="制度要素" min-width="10%" show-overflow-tooltip>
-                                </el-table-column>
-                                <el-table-column prop="clause_number" label="法规条款" min-width="15%" show-overflow-tooltip>
-                                </el-table-column>
-                                <el-table-column prop="original_text" label="法规原文" min-width="20%" show-overflow-tooltip>
-                                </el-table-column>
-                                <el-table-column prop="related_chunks.content" label="企业制度" min-width="25%" show-overflow-tooltip>
-                                </el-table-column>
-                                <el-table-column prop="review_result" label="检查结果" min-width="5%" show-overflow-tooltip>
-                                </el-table-column>
-                                <el-table-column prop="advice" label="修改建议" min-width="20%" show-overflow-tooltip>
-                                </el-table-column>
-                            </el-table>
-                        </el-main>
+                        <!-- 逻辑2: 比对结果表格 -->
+                        <template v-else>
+                            <!-- 比对结果表格 -->
+                            <el-main style="padding: 28px 0px 0px 20px;">
+                                <el-table 
+                                    ref="clauseTable"
+                                    :data="clauseTableData" 
+                                    style="width: 100%;"
+                                    :height="'70vh'"
+                                    show-overflow-tooltip>
+                                    <!-- 表格列定义 -->
+                                    <el-table-column type="index" label="序号" min-width="5%" align="center">
+                                    </el-table-column>
+                                    <el-table-column prop="institution" label="制度要素" min-width="10%" show-overflow-tooltip>
+                                    </el-table-column>
+                                    <el-table-column prop="clause_number" label="法规条款" min-width="15%" show-overflow-tooltip>
+                                    </el-table-column>
+                                    <el-table-column prop="original_text" label="法规原文" min-width="20%" show-overflow-tooltip>
+                                    </el-table-column>
+                                    <el-table-column prop="related_chunks.content" label="企业制度" min-width="25%" show-overflow-tooltip>
+                                    </el-table-column>
+                                    <el-table-column prop="review_result" label="检查结果" min-width="5%" show-overflow-tooltip>
+                                    </el-table-column>
+                                    <el-table-column prop="advice" label="修改建议" min-width="20%" align="center" show-overflow-tooltip>
+                                    </el-table-column>
+                                </el-table>
+                            </el-main>
+                        </template>
                     </el-main>
                 </el-container>
             </el-container>
@@ -211,7 +227,7 @@ export default {
                     related_chunks: { 
                         file_id: "259dfc41-896c-11ef-91da-2cf05d3470d1",
                         file_name: "03 测试制度1-安全培训教育制度.docx",
-                        content: "培训计划和培训资金 安全部负责开展安全培训需求调研工作，各职能部门根据本部门的需要，在年初提交培训需求给安全部，由安全部统一汇总。 安全部汇总安全培训需求，确定安全培训所需费用，根据培训需求和国家相关规定，制定公司年度安全培训计划，提交总经理批准。总经理批准后，安全部按照年度培训计划组织开展安全培训。 任何部门不得挪用安全培训资金。",
+                        content: "培训计划和培训资金 安全部负责开展安全培训需求调研工作，各职能部门根据本部门的需要，在年初提交培训需求给安全部，由安全部统一汇总。 安全部汇总安全培训需求，确定全培训所需费用，根据培训需求和国家相关规定，制定公司年度安全培训计划，提交总经理批准。总经理批准后，安全部按照年度培训计划组织开展安全培训。 任何部门不得挪用安全培训资金。",
                     },
                     review_result: '符合',
                     advice: '无',
@@ -335,8 +351,15 @@ export default {
             // 是否比对完成
             hasCompareDone: false, 
             // 步骤条【0：选择标准条款，1：上传待审核条款，2：新文档理解中，3：比对完成】
-            activeStep: 1,
+            activeStep: 0,
             abortController: null,
+            customColors: [
+                {color: '#a8d3ff', percentage: 20},
+                {color: '#7ebcff', percentage: 40},
+                {color: '#54a5ff', percentage: 60},
+                {color: '#2a8eff', percentage: 80},
+                {color: '#1385f6', percentage: 100}
+            ]
         };
     },
     
@@ -578,7 +601,7 @@ export default {
             if (this.newMessage.trim() !== '' || this.newMessage.trim().length > 0 || this.fileList.length > 0) {
                 if (this.fileList.length > 0) {
                     // this.newMessage = ""
-                    this.chatMessages.push({ content: "让我来分析这个文档      " + this.fileList[0].name, role: 'user' });
+                    this.chatMessages.push({ content: "让我分析这个文档      " + this.fileList[0].name, role: 'user' });
 
                 }
                 else {
@@ -783,7 +806,7 @@ export default {
                 this.clauseTableData = []
                 // 构建新对比历史
                 const newHistory = {
-                    name: this.options.f,
+                    name: this.options.filter(item => item.value === this.value)[0].label,
                     compare_result: []
                 }
                 this.historyArrlist.unshift(newHistory)
@@ -941,12 +964,17 @@ export default {
       border-color: #1385f6 !important;
     }
   }
+
+  ::v-deep .el-progress-bar__inner {
+    transition: width 0.6s ease;
+  }
+
+  ::v-deep .el-progress__text {
+    color: #1385f6;
+  }
 </style>
 <style>
   .el-tooltip__popper {
     max-width: 800px;
   }
 </style>
-
-
-
