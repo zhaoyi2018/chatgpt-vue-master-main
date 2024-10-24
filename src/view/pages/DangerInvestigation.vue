@@ -70,8 +70,8 @@
                             </div>
 
 
-                            <div v-else>
-                                <!-- <el-row type="flex" class="response-options">
+                            <!-- <div v-else>
+                                <el-row type="flex" class="response-options">
                                     <el-col :span="8" v-for="(card, index) in cards1" :key="index">
                                         <el-card @click.native="sendMessage(card.message)" style="height: 250px; margin-left: 20px">
                                             <div slot="header" class="clearfix">
@@ -82,8 +82,8 @@
                                             </div>
                                         </el-card>
                                     </el-col>
-                                </el-row> -->
-                            </div>
+                                </el-row>
+                            </div> -->
                         </el-main>
                         <el-footer style="align-items: flex-start; display: flex;padding: 0px;">
                             <div class="input-wrapper">
@@ -547,8 +547,12 @@ export default {
                     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidGVzdDEiLCJleHAiOjE3Mjg4Nzc1MDl9.10pwn0YnmSqIe7Ixsfozf1wDbk7RF4dn4KKc1NQWe7g",
                 };
                 delete_dialogue(params).then((res) => {
-                    if (res.code == 200) {
+                    if (res.data.code == 200) {
                         this.historyArrlist.splice(index, 1);
+                        this.$message({
+                            type: 'success',
+                            message: '删除对话成功!'
+                        });
                     } else {
                         this.$message.error('删除对话失败!');
                     }
@@ -596,6 +600,7 @@ export default {
                 this.fileList = []
             }
             const lastMessageIndex = this.chatMessages.length - 1;
+            console.log("lastMessageIndex", lastMessageIndex)
             if (!end) {
                 this.chatMessages[lastMessageIndex].content += content;
                 this.$set(this.chatMessages, lastMessageIndex, { ...this.chatMessages[lastMessageIndex] });
