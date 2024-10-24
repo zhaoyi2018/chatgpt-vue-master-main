@@ -14,14 +14,14 @@ export const getFriend = params => {
 export const getkbChat = params => {
   return axios({
     method: 'post',
-    url: `http://121.43.126.21:8001/dialog/add_dialog`,
+    url: `http://39.106.94.192:8001/dialog/add_dialog`,
     data: params
   }).then(res => res.data)
 }
 export const getclauseChat = params => {
   return axios({
     method: 'post',
-    url: `http://121.43.126.21:8001/chat/new_clause_chat`,
+    url: `http://39.106.94.192:8001/chat/new_clause_chat`,
     data: params
   }).then(res => res.data)
 }
@@ -31,7 +31,7 @@ export const getChat = params => {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://121.43.126.21:8001/dialog/list_dialog?token=${params.access_token}`,
+    url: `http://39.106.94.192:8001/dialog/list_dialog?token=${params.access_token}`,
   
   }).then(res => res.data)
 }
@@ -39,7 +39,7 @@ export const getChat = params => {
 export const updateDialog = params => {
   return axios({
     method: 'post',
-    url: `http://121.43.126.21:8001/dialog/update_dialog`,
+    url: `http://39.106.94.192:8001/dialog/update_dialog`,
     data: params
   })
 }
@@ -47,7 +47,7 @@ export const updateDialog = params => {
 export const getChatchat = params => {
   return axios({
     method: 'post',
-    url: `http://121.43.126.21:8001/chat/${params.dialogue_id}/chat?query=${params.query}&config=${params.config}`,
+    url: `http://39.106.94.192:8001/chat/${params.dialogue_id}/chat?query=${params.query}&config=${params.config}`,
     data: params
   }).then(res => res.data)
 }
@@ -58,9 +58,9 @@ export const getChatchat = params => {
 export const chatgpt = params => {
   return axios({
     method: 'post',
-    // url: `http://121.43.126.21:8001/chat/knowledge_base_chat`,
+    // url: `http://39.106.94.192:8001/chat/knowledge_base_chat`,
 
-    url: `http://121.43.126.21:8001/chat/${params.dialogue_id}/chat?query=${params.query}&config=${params.config}`,
+    url: `http://39.106.94.192:8001/chat/${params.dialogue_id}/chat?query=${params.query}&config=${params.config}`,
     data: params,
 
   }).then(res => {
@@ -74,7 +74,7 @@ export const chatupload = params => {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://121.43.126.21:8001/upload/img`,
+    url: `http://39.106.94.192:8001/upload/img`,
     data: params,
   }).then(res => {
     return res
@@ -88,7 +88,7 @@ export const gethistory = params => {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://121.43.126.21:8001/history/chat_history`,
+    url: `http://39.106.94.192:8001/history/chat_history`,
     data: params,
   }).then(res => {
     return res
@@ -102,7 +102,7 @@ export const getexam = params => {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://121.43.126.21:8001/exam`,
+    url: `http://39.106.94.192:8001/exam`,
     data: params,
   }).then(res => {
     return res
@@ -115,7 +115,7 @@ export const getstatic = params => {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://121.43.126.21:8001/static`,
+    url: `http://39.106.94.192:8001/static`,
     data: params,
   }).then(res => {
     return res
@@ -128,7 +128,7 @@ export const setclause_check = params => {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://121.43.126.21:8001/chat/${params.dialogue_id}/clause_check?query=${params.query}&config=${params.config}`,
+    url: `http://39.106.94.192:8001/chat/${params.dialogue_id}/clause_check?query=${params.query}&config=${params.config}`,
     data: params,
   }).then(res => {
     return res
@@ -138,7 +138,7 @@ export const setclause_check = params => {
 export const delete_dialogue = params => {
   return axios({
     method: 'post',
-    url: `http://121.43.126.21:8001/dialog/delete_dialog`,
+    url: `http://39.106.94.192:8001/dialog/delete_dialog`,
     data: params,
   })
 }
@@ -149,7 +149,7 @@ export const list_conversion = params => {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://121.43.126.21:8001/dialog/list_conversion?token=${params.token}&dialog_id=${params.id}`,
+    url: `http://39.106.94.192:8001/dialog/list_conversion?token=${params.token}&dialog_id=${params.id}`,
     data: params,
   }).then(res => {
     return res
@@ -162,7 +162,7 @@ export const list_conversion = params => {
 //     headers: {
 //       'Content-Type': 'multipart/form-data'
 //     },
-//     url: `http://121.43.126.21:8001/clause/list_standard_clause`,
+//     url: `http://39.106.94.192:8001/clause/list_standard_clause`,
 //     data: params,
 //   }).then(res => {
 //     return res
@@ -171,7 +171,7 @@ export const list_conversion = params => {
 export const list_standard_clause = params => {
   return axios({
     method: 'get',
-    url: `http://121.43.126.21:8001/clause/list_standard_clause?token=${params.token}`,
+    url: `http://39.106.94.192:8001/clause/list_standard_clause?token=${params.token}`,
   })
 }
 
@@ -179,7 +179,7 @@ export const list_standard_clause = params => {
 export const delete_clause_his = params => {
   return axios({
     method: 'post',
-    url: `http://121.43.126.21:8001/clause/delete_his_clause`,
+    url: `http://39.106.94.192:8001/clause/delete_his_clause`,
     data: params,
   })
 }
@@ -208,7 +208,7 @@ export const compare_clause = async (params, handleChunk, abortSignal) => {
       });
 
       // 获取比对内容
-      response = await fetch(`http://121.43.126.21:8001/clause/compare_clause`, {
+      response = await fetch(`http://39.106.94.192:8001/clause/compare_clause`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
@@ -257,7 +257,7 @@ export const compare_clause = async (params, handleChunk, abortSignal) => {
 export const list_compare_history = params => {
   return axios({
     method: 'get',
-    url: `http://121.43.126.21:8001/clause/list_compare_history?token=${params.token}`,
+    url: `http://39.106.94.192:8001/clause/list_compare_history?token=${params.token}`,
   })
 }
 
@@ -270,7 +270,7 @@ export const upload_new_clause = (file, handleChunk) => {
 
     // }
     // 发送文件上传请求并逐条处理返回的数据流
-    return axios.post('http://121.43.126.21:8001/clause/upload_new_clause', formData, {
+    return axios.post('http://39.106.94.192:8001/clause/upload_new_clause', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -288,7 +288,7 @@ export const chatkbStreamgpt = async (params, handleChunk, handleReferences, abo
   }
 
   try {
-    const response = await fetch(`http://121.43.126.21:8001/chat/knowledge`, {
+    const response = await fetch(`http://39.106.94.192:8001/chat/knowledge`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
@@ -346,7 +346,7 @@ export const chatkbStreamgpt = async (params, handleChunk, handleReferences, abo
 };
 
 export const chatclauseStreamgpt = async (params, handleChunk, handleReferences) => {
-  const response = await fetch(`http://121.43.126.21:8001/chat/${params.dialogue_id}/clause_stream_check?query=${params.query}&config=${params.config}`, {
+  const response = await fetch(`http://39.106.94.192:8001/chat/${params.dialogue_id}/clause_stream_check?query=${params.query}&config=${params.config}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json;charset=UTF-8',
@@ -394,7 +394,7 @@ export const chatclauseStreamgpt = async (params, handleChunk, handleReferences)
   }
 };
 export const chatStreamgpt = async (params, handleChunk, handleReferences) => {
-  const response = await fetch(`http://121.43.126.21:8001/chat/${params.dialogue_id}/stream_chat?query=${params.query}&config=${params.config}`, {
+  const response = await fetch(`http://39.106.94.192:8001/chat/${params.dialogue_id}/stream_chat?query=${params.query}&config=${params.config}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json;charset=UTF-8',
@@ -447,7 +447,7 @@ export const upload_exam = async (file, handleChunk) => {
   
 
   try {
-    const response = await fetch('http://121.43.126.21:8001/exam/upload_exam', {
+    const response = await fetch('http://39.106.94.192:8001/exam/upload_exam', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
@@ -504,7 +504,7 @@ export const upload_kg = async (file, handleChunk) => {
   formData.append('file', file.file);
 
   // 发送文件上传请求并逐条处理返回的数据流
-  const response = await axios.post('http://121.43.126.21:8001/knowledge/upload_kg', formData, {
+  const response = await axios.post('http://39.106.94.192:8001/knowledge/upload_kg', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
@@ -548,7 +548,7 @@ export const clause_doc_stream_check1 = params => {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://121.43.126.21:8001/chat/${params.dialogue_id}/clause_doc_stream_check?config=${params.config}`,
+    url: `http://39.106.94.192:8001/chat/${params.dialogue_id}/clause_doc_stream_check?config=${params.config}`,
     data: params.file,
 
   }).then(res => {
@@ -562,7 +562,7 @@ export const clause_doc_stream_check = async (params, handleChunk, handleReferen
 
   // Ensure config is URL encoded
 
-  const response = await fetch(`http://121.43.126.21:8001/chat/${params.dialogue_id}/clause_doc_stream_check?config=${params.config}`, {
+  const response = await fetch(`http://39.106.94.192:8001/chat/${params.dialogue_id}/clause_doc_stream_check?config=${params.config}`, {
     method: 'post',
     body: formData
   });
@@ -611,7 +611,7 @@ export const clause_doc_stream_check = async (params, handleChunk, handleReferen
   }
 };
 export const chatFileStreamgpt = async (params, handleChunk, handleReferences) => {
-  const response = await fetch(`http://121.43.126.21:8001/chat/${params.dialogue_id}/stream_doc_chat?query=${params.query}&config=${params.config}`, {
+  const response = await fetch(`http://39.106.94.192:8001/chat/${params.dialogue_id}/stream_doc_chat?query=${params.query}&config=${params.config}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json;charset=UTF-8',
@@ -662,7 +662,7 @@ export const upload_doc = params => {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://121.43.126.21:8001/upload/doc?config=${params.config}`,
+    url: `http://39.106.94.192:8001/upload/doc?config=${params.config}`,
     data: params.file,
 
   }).then(res => {
@@ -670,7 +670,7 @@ export const upload_doc = params => {
   })
 }
 export const chatImgStreamgpt = async (params, handleChunk, handleReferences) => {
-  const response = await fetch(`http://121.43.126.21:8001/chat/${params.dialogue_id}/stream_img_chat?query=${params.query}&config=${params.config}`, {
+  const response = await fetch(`http://39.106.94.192:8001/chat/${params.dialogue_id}/stream_img_chat?query=${params.query}&config=${params.config}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json;charset=UTF-8',
@@ -720,7 +720,7 @@ export const upload_img = params => {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
-    url: `http://121.43.126.21:8001/upload/img`,
+    url: `http://39.106.94.192:8001/upload/img`,
     data: params.file,
 
   }).then(res => {
@@ -730,7 +730,7 @@ export const upload_img = params => {
 export const login = params => {
   return axios({
     method: 'post',
-    url: `http://121.43.126.21:8001/login`,
+    url: `http://39.106.94.192:8001/login`,
     data: {
       "username": "test1",
       "password": "111111"

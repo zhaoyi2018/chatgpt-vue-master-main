@@ -223,10 +223,10 @@ export default {
         showFullContent(item) {
             if (item.standard_name) {
                 this.fullReference = `${item.standard_name}-${item.standard_clause}-${item.standard_number}`;
-                this.fullContent = this.convertBracketsToSpans(item.content, item.image ? `http://121.43.126.21:8001/image/${item.image}` : "无图片");
+                this.fullContent = this.convertBracketsToSpans(item.content, item.image ? `http://39.106.94.192:8001/image/${item.image}` : "无图片");
             } else {
                 this.fullReference = item.table;
-                this.fullContent = this.appendCustomLink(item.content, item.table, item.image ? `http://121.43.126.21:8001/image/${item.image}` : "无图片");
+                this.fullContent = this.appendCustomLink(item.content, item.table, item.image ? `http://39.106.94.192:8001/image/${item.image}` : "无图片");
             }
             this.dialogVisible = true;
         },
